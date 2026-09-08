@@ -18,7 +18,7 @@ PanelWindow {
     }
 
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: PowerMenuState.menuVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: PowerMenuState.menuVisible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     WlrLayershell.namespace: "quickshell-powermenu"
 
     anchors {

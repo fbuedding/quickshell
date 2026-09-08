@@ -24,6 +24,14 @@ PanelWindow {
     Item {
         anchors.fill: parent
 
+        // Click outside (on empty bar area) to close power menu
+        MouseArea {
+            anchors.fill: parent
+            z: -1
+            enabled: PowerMenuState.menuVisible
+            onClicked: PowerMenuState.hide()
+        }
+
         // Left Section: CachyOS Symbol (App Launcher)
         RowLayout {
             id: leftSection
@@ -42,7 +50,7 @@ PanelWindow {
                 Rectangle {
                     anchors.fill: parent
                     radius: 6
-                    color: logoMouse.containsMouse ? Colors.colBlack : "transparent"
+                    color: (logoMouse.containsMouse || PowerMenuState.menuVisible) ? Colors.colBlack : "transparent"
 
                     Image {
                         id: logoImg
