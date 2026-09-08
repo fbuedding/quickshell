@@ -24,38 +24,12 @@ PanelWindow {
     Item {
         anchors.fill: parent
 
-        // Left Section: SysInfo, Volume, Clock
+        // Left Section: CachyOS Symbol (App Launcher)
         RowLayout {
             id: leftSection
             anchors {
                 left: parent.left
                 leftMargin: 16
-                verticalCenter: parent.verticalCenter
-            }
-            spacing: 12
-
-            SysInfo {}
-
-            Separator {}
-
-            Volume {}
-
-            Separator {}
-
-            Clock {}
-        }
-
-        // Center Section: Workspaces
-        Workspaces {
-            anchors.centerIn: parent
-        }
-
-        // Right Section: CachyOS Symbol
-        RowLayout {
-            id: rightSection
-            anchors {
-                right: parent.right
-                rightMargin: 16
                 verticalCenter: parent.verticalCenter
             }
             spacing: 8
@@ -100,6 +74,32 @@ PanelWindow {
                     onClicked: AppLauncherState.toggle()
                 }
             }
+        }
+
+        // Center Section: Workspaces
+        Workspaces {
+            anchors.centerIn: parent
+        }
+
+        // Right Section: SysInfo, Volume, Clock
+        RowLayout {
+            id: rightSection
+            anchors {
+                right: parent.right
+                rightMargin: 16
+                verticalCenter: parent.verticalCenter
+            }
+            spacing: 12
+
+            SysInfo {}
+
+            Separator {}
+
+            Volume {}
+
+            Separator {}
+
+            Clock {}
         }
 
         // Subtle bottom border line
