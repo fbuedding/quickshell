@@ -69,6 +69,7 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
 
         onWheel: wheel => {
             if (!volumeRoot.ready)
@@ -82,9 +83,15 @@ Item {
             }
         }
 
-        onClicked: {
-            if (volumeRoot.ready) {
-                volumeRoot.sink.audio.muted = !volumeRoot.sink.audio.muted;
+        onClicked: mouse => {
+            if (mouse.button === Qt.LeftButton) {
+                Quickshell.execDetached(["pwvucontrol"]);
+            } else if (mouse.button === Qt.RightButton) {
+                if (volumeRoot.ready) {
+                    volumeRoot.sink.audio.muted = !volumeRoot.sink.audio.muted;
+                }
+            } else if (mouse.button === Qt.MiddleButton) {
+                Quickshell.execDetached(["python3", Quickshell.env("HOME") + "/.config/quickshell/default/scripts/cycle_audio.py"]);
             }
         }
     }
