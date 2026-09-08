@@ -18,6 +18,7 @@ PanelWindow {
     anchors.left: true
     implicitWidth: borderThickness + barWidth + cornerRadius
     exclusiveZone: borderThickness + barWidth
+    WlrLayershell.layer: WlrLayer.Top
     Item {
         anchors.fill: parent
         // Left border strip — z: 0, sits underneath

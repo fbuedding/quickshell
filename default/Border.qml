@@ -24,7 +24,7 @@ Scope {
                 }
                 implicitHeight: root.thickness
                 exclusiveZone: root.thickness
-                WlrLayershell.layer: WlrLayer.Bottom
+                WlrLayershell.layer: WlrLayer.Top
                 WlrLayershell.namespace: "quickshell-border-top"
                 color: root.borderColor
             }
@@ -38,7 +38,7 @@ Scope {
                 }
                 implicitHeight: root.thickness
                 exclusiveZone: root.thickness
-                WlrLayershell.layer: WlrLayer.Bottom
+                WlrLayershell.layer: WlrLayer.Top
                 WlrLayershell.namespace: "quickshell-border-bottom"
                 color: root.borderColor
             }
@@ -52,7 +52,7 @@ Scope {
                 }
                 implicitWidth: root.thickness
                 exclusiveZone: root.thickness
-                WlrLayershell.layer: WlrLayer.Bottom
+                WlrLayershell.layer: WlrLayer.Top
                 WlrLayershell.namespace: "quickshell-border-left"
                 color: root.borderColor
             }
@@ -66,7 +66,7 @@ Scope {
                 }
                 implicitWidth: root.thickness
                 exclusiveZone: root.thickness
-                WlrLayershell.layer: WlrLayer.Bottom
+                WlrLayershell.layer: WlrLayer.Top
                 WlrLayershell.namespace: "quickshell-border-right"
                 color: root.borderColor
             }
