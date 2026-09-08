@@ -8,7 +8,7 @@ import "./theme"
 PanelWindow {
     id: barWindow
     property int barWidth: 0
-    property int cornerRadius: 16
+    property int cornerRadius: Theme.cornerRadius
     property int borderThickness: 0
     property color barColor: Colors.colBg
     color: "transparent"

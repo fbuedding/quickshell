@@ -71,7 +71,7 @@ PanelWindow {
         topLeftRadius: 0
         topRightRadius: 0
         bottomLeftRadius: 0
-        bottomRightRadius: 16
+        bottomRightRadius: Theme.cornerRadius
 
         clip: true
 
@@ -204,7 +204,7 @@ PanelWindow {
 
     // ── Bottom-left concave curve — seamless connection with left border
     ConcaveCurves {
-        radius: 16
+        radius: Theme.cornerRadius
         color: Colors.colBg
         isTop: true
         mirrored: false

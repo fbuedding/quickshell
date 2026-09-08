@@ -5,7 +5,7 @@ import "../theme"
 Shape {
     id: root
 
-    property int radius: 14
+    property int radius: Theme.cornerRadius
     property color color: Colors.colBg
     property bool isTop: true
     property bool mirrored: false   // true = horizontally flip (for right-side bars)

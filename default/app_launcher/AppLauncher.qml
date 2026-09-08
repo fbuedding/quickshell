@@ -118,7 +118,7 @@ PanelWindow {
     readonly property int panelW: 440
     // 12 top-pad + 4 handle + 8 + 44 search + 8 + list + 12 bot-pad
     readonly property int panelH: 88 + Math.min(filteredApps.length, maxVisible) * itemH
-    readonly property int cornerRadius: 18
+    readonly property int cornerRadius: Theme.cornerRadius
 
     // Shared slide offset — drives the panel AND the two corner pieces in sync
     property real slideY: AppLauncherState.launcherVisible ? 0 : panelH + 6
@@ -156,8 +156,8 @@ PanelWindow {
 
         // Semi-translucent frosted panel
         color: Colors.colBg
-        topLeftRadius: 18
-        topRightRadius: 18
+        topLeftRadius: root.cornerRadius
+        topRightRadius: root.cornerRadius
         bottomLeftRadius: 0
         bottomRightRadius: 0
         border.color: Colors.colBg
