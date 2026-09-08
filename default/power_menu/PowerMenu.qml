@@ -4,6 +4,7 @@ import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
 import "../theme"
+import "../components"
 
 PanelWindow {
     id: root
@@ -57,7 +58,7 @@ PanelWindow {
         id: panel
         anchors {
             top: parent.top
-            topMargin: 34
+            topMargin: 0
             left: parent.left
             leftMargin: 0
         }
@@ -70,7 +71,7 @@ PanelWindow {
         topLeftRadius: 0
         topRightRadius: 0
         bottomLeftRadius: 0
-        bottomRightRadius: 14
+        bottomRightRadius: 16
 
         clip: true
 
@@ -87,28 +88,6 @@ PanelWindow {
         opacity: PowerMenuState.menuVisible ? 1 : 0
         Behavior on opacity {
             NumberAnimation { duration: 200 }
-        }
-
-        // Right border line
-        Rectangle {
-            anchors {
-                top: parent.top
-                bottom: parent.bottom
-                right: parent.right
-            }
-            width: 1
-            color: Colors.colBlack
-        }
-
-        // Bottom border line
-        Rectangle {
-            anchors {
-                left: parent.left
-                right: parent.right
-                bottom: parent.bottom
-            }
-            height: 1
-            color: Colors.colBlack
         }
 
         // ── Actions ─────────────────────────────────────────────────────────
@@ -221,5 +200,17 @@ PanelWindow {
                 }
             }
         }
+    }
+
+    // ── Bottom-left concave curve — seamless connection with left border
+    ConcaveCurves {
+        radius: 16
+        color: Colors.colBg
+        isTop: true
+        mirrored: false
+        anchors.top: panel.bottom
+        anchors.left: panel.left
+        transform: Translate { x: panel.slideX }
+        opacity: panel.opacity
     }
 }
