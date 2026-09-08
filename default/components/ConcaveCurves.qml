@@ -1,11 +1,12 @@
 import QtQuick
 import QtQuick.Shapes
+import "../theme"
 
 Shape {
     id: root
 
     property int radius: 14
-    property color color: "#1e1e2d"
+    property color color: Colors.colBg
     property bool isTop: true
     property bool mirrored: false   // true = horizontally flip (for right-side bars)
 
@@ -42,7 +43,7 @@ Shape {
 	    y: root.isTop ? 0 : 0
 	    radiusX: root.radius
 	    radiusY: root.radius
-	    direction: root.isTop ? PathArc.CounterClockwise : PathArc.Clockwise
+	    direction: root.isTop ? PathArc.Counterclockwise : PathArc.Clockwise
 	}
 
     }

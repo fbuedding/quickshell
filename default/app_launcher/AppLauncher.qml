@@ -108,9 +108,9 @@ PanelWindow {
     }
 
     // ── Accent colours ─────────────────────────────────────────────────────
-    readonly property color accentFill: "#2e2e3d"
-    readonly property color accentIcon: "#3e3e4d"
-    readonly property color fgDim: "#4e4e5d"
+    readonly property color accentFill: Colors.colBlack
+    readonly property color accentIcon: Colors.colBrightBlack
+    readonly property color fgDim: Colors.colBrightBlack
 
     // ── Panel geometry ─────────────────────────────────────────────────────
     readonly property int maxVisible: 7
@@ -155,12 +155,12 @@ PanelWindow {
         anchors.bottom: parent.bottom
 
         // Semi-translucent frosted panel
-        color: "#1e1e2d"
+        color: Colors.colBg
         topLeftRadius: 18
         topRightRadius: 18
         bottomLeftRadius: 0
         bottomRightRadius: 0
-        border.color: "#1e1e2d"
+        border.color: Colors.colBg
         border.width: 1
 
         // Slide up / down
@@ -203,7 +203,7 @@ PanelWindow {
                     anchors.fill: parent
                     radius: 10
                     color: "transparent"
-                    border.color: "#4f4f6d"
+                    border.color: Colors.colBrightBlack
                     border.width: 1
                     opacity: searchInput.activeFocus ? 0.55 : 0
                     Behavior on opacity {
@@ -228,7 +228,7 @@ PanelWindow {
                         Text {
                             anchors.fill: parent
                             text: root.isSearching ? "" : "Search apps…"
-                            color: "#4f4f6d"
+                            color: Colors.colBrightBlack
                             opacity: 0.28
                             font {
                                 pixelSize: 13
@@ -241,7 +241,7 @@ PanelWindow {
                         TextInput {
                             id: searchInput
                             anchors.fill: parent
-                            color: "#4f4f6d"
+                            color: Colors.colFg
                             selectionColor: root.accentFill
                             font {
                                 pixelSize: 13
@@ -302,7 +302,7 @@ PanelWindow {
                     anchors.centerIn: parent
                     visible: root.filteredApps.length === 0
                     text: "No apps found"
-                    color: "#4f4f6d"
+                    color: Colors.colBrightBlack
                     opacity: 0.28
                     font {
                         pixelSize: 13
@@ -471,7 +471,7 @@ PanelWindow {
     //     both share root.slideY so they move in lockstep with the panel.
     ConcaveCurves {
         radius: root.cornerRadius
-        color: "#1e1e2d"
+        color: Colors.colBg
         isTop: false
         mirrored: true
         anchors.right: panel.left
@@ -481,7 +481,7 @@ PanelWindow {
 
     ConcaveCurves {
         radius: root.cornerRadius
-        color: "#1e1e2d"
+        color: Colors.colBg
         isTop: false
         mirrored: false
         anchors.left: panel.right

@@ -105,14 +105,14 @@ ColumnLayout {
             text: "\uf2c9"
             font.family: root.fontFamily
             font.pixelSize: root.fontSize
-            color: root.cpuTemp >= 80 ? "#e06c75" : Colors.colFg
+            color: root.cpuTemp >= 80 ? Colors.colRed : Colors.colFg
         }
         Text {
             Layout.alignment: Qt.AlignHCenter
             text: root.cpuTemp + "°"
             font.family: root.fontFamily
             font.pixelSize: root.fontSize - 1
-            color: root.cpuTemp >= 80 ? "#e06c75" : Colors.colFg
+            color: root.cpuTemp >= 80 ? Colors.colRed : Colors.colFg
         }
     }
 }

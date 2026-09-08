@@ -3,14 +3,15 @@ import Quickshell.Wayland
 import QtQuick
 import QtQuick.Shapes
 import "../components"
+import "../theme"
 
 PanelWindow {
     id: barWindow
     property int barWidth: 25
     property int cornerRadius: 16
     property int borderThickness: 12
-    property color barColor: "#1e1e2d"
-    property color borderColor: "#1e1e2d"
+    property color barColor: Colors.colBg
+    property color borderColor: Colors.colBg
     color: "transparent"
     anchors.top: true
     anchors.bottom: true
