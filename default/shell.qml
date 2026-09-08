@@ -13,7 +13,4 @@ ShellRoot {
 	    screen: modelData
 	}
     }
-
-    RightBar {}
-
 }

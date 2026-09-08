@@ -6,8 +6,9 @@ import "../theme"
 
 Item {
     id: volumeRoot
-    implicitWidth: 25
-    implicitHeight: layout.implicitHeight
+    implicitWidth: rowLayout.implicitWidth
+    implicitHeight: rowLayout.implicitHeight
+    Layout.alignment: Qt.AlignVCenter
 
     property string fontFamily: "JetBrainsMono Nerd Font"
     property int fontSize: 12
@@ -31,34 +32,34 @@ Item {
         return String.fromCodePoint(0xF057E);
     }
 
-    ColumnLayout {
-        id: layout
+    RowLayout {
+        id: rowLayout
         anchors.centerIn: parent
-        spacing: 0
+        spacing: 5
 
         Text {
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignVCenter
             text: volumeRoot.icon
-            color: volumeRoot.muted ? Colors.colCyan : Colors.colFg
+            color: volumeRoot.muted ? Colors.colCyan : Colors.colBlue
             font {
                 family: volumeRoot.fontFamily
-                pixelSize: volumeRoot.fontSize
+                pixelSize: volumeRoot.fontSize + 1
             }
         }
 
         Text {
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignVCenter
             text: {
                 if (!volumeRoot.ready)
-                    return "_";
+                    return "--";
                 if (volumeRoot.muted)
-                    return "mut";
+                    return "muted";
                 return volumeRoot.vol + "%";
             }
             color: volumeRoot.muted ? Colors.colCyan : Colors.colFg
             font {
                 family: volumeRoot.fontFamily
-                pixelSize: volumeRoot.fontSize - 1
+                pixelSize: volumeRoot.fontSize
             }
         }
     }
@@ -66,7 +67,8 @@ Item {
     MouseArea {
         id: volumeMouseArea
         anchors.fill: parent
-        focus: false
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
 
         onWheel: wheel => {
             if (!volumeRoot.ready)

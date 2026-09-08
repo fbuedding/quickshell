@@ -1,9 +1,12 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import "../theme"
 
-Column {
-    spacing: 0
+RowLayout {
+    id: clockRoot
+    spacing: 5
+    Layout.alignment: Qt.AlignVCenter
 
     SystemClock {
         id: clock
@@ -11,26 +14,23 @@ Column {
     }
 
     Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: Qt.formatDateTime(clock.date, "HH")
-        color: Colors.colFg
+        Layout.alignment: Qt.AlignVCenter
+        text: "󰥔"
+        color: Colors.colPurple
         font {
-            family: "SF Mono"
-            letterSpacing: -1
-            pixelSize: 15
-            weight: 600
+            family: "JetBrainsMono Nerd Font"
+            pixelSize: 13
         }
     }
 
     Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: Qt.formatDateTime(clock.date, "mm")
+        Layout.alignment: Qt.AlignVCenter
+        text: Qt.formatDateTime(clock.date, "HH:mm")
         color: Colors.colFg
         font {
-            family: "SF Mono"
-            letterSpacing: -1
-            pixelSize: 15
-            weight: 600
+            family: "JetBrainsMono Nerd Font"
+            pixelSize: 12
+            weight: Font.Bold
         }
     }
 }

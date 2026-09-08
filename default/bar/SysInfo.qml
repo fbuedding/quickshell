@@ -3,9 +3,9 @@ import QtQuick.Layouts
 import Quickshell.Io
 import "../theme"
 
-ColumnLayout {
+RowLayout {
     id: root
-    spacing: 8
+    spacing: 10
     property string fontFamily: "JetBrainsMono Nerd Font"
     property int fontSize: 12
     property real cpuUsage: 0
@@ -47,73 +47,62 @@ ColumnLayout {
     }
 
     // CPU
-    ColumnLayout {
-        Layout.alignment: Qt.AlignHCenter
-        spacing: 0
+    RowLayout {
+        spacing: 4
+        Layout.alignment: Qt.AlignVCenter
         Text {
-            Layout.alignment: Qt.AlignHCenter
             text: "󰘚"
+            font.family: root.fontFamily
+            font.pixelSize: root.fontSize + 1
+            color: Colors.colPurple
+            Layout.alignment: Qt.AlignVCenter
+        }
+        Text {
+            text: root.cpuUsage + "%"
             font.family: root.fontFamily
             font.pixelSize: root.fontSize
             color: Colors.colFg
+            Layout.alignment: Qt.AlignVCenter
         }
-        Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: root.cpuUsage + "%"
-            font.family: root.fontFamily
-            font.pixelSize: root.fontSize - 1
-            color: Colors.colFg
-        }
-    }
-
-    Separator {
-        Layout.fillWidth: true
-        Layout.preferredHeight: 1
     }
 
     // RAM
-    ColumnLayout {
-        Layout.alignment: Qt.AlignHCenter
-        spacing: 0
+    RowLayout {
+        spacing: 4
+        Layout.alignment: Qt.AlignVCenter
         Text {
-            Layout.alignment: Qt.AlignHCenter
             text: "󰍛"
+            font.family: root.fontFamily
+            font.pixelSize: root.fontSize + 1
+            color: Colors.colGreen
+            Layout.alignment: Qt.AlignVCenter
+        }
+        Text {
+            text: root.ramUsage + "%"
             font.family: root.fontFamily
             font.pixelSize: root.fontSize
             color: Colors.colFg
+            Layout.alignment: Qt.AlignVCenter
         }
-        Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: root.ramUsage + "%"
-            font.family: root.fontFamily
-            font.pixelSize: root.fontSize - 1
-            color: Colors.colFg
-        }
-    }
-
-    Separator {
-        Layout.fillWidth: true
-        Layout.preferredHeight: 1
     }
 
     // Temp
-    ColumnLayout {
-        Layout.alignment: Qt.AlignHCenter
-        spacing: 0
+    RowLayout {
+        spacing: 4
+        Layout.alignment: Qt.AlignVCenter
         Text {
-            Layout.alignment: Qt.AlignHCenter
             text: "\uf2c9"
+            font.family: root.fontFamily
+            font.pixelSize: root.fontSize + 1
+            color: root.cpuTemp >= 80 ? Colors.colRed : Colors.colYellow
+            Layout.alignment: Qt.AlignVCenter
+        }
+        Text {
+            text: root.cpuTemp + "°C"
             font.family: root.fontFamily
             font.pixelSize: root.fontSize
             color: root.cpuTemp >= 80 ? Colors.colRed : Colors.colFg
-        }
-        Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: root.cpuTemp + "°"
-            font.family: root.fontFamily
-            font.pixelSize: root.fontSize - 1
-            color: root.cpuTemp >= 80 ? Colors.colRed : Colors.colFg
+            Layout.alignment: Qt.AlignVCenter
         }
     }
 }
-

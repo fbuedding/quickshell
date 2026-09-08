@@ -1,75 +1,116 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
-import QtQuick.Shapes
-import "../components"
+import QtQuick.Layouts
 import "../theme"
+import "../app_launcher"
 
 PanelWindow {
     id: barWindow
-    property int barWidth: 25
-    property int cornerRadius: 16
-    property int borderThickness: 12
+    property int barHeight: 34
     property color barColor: Colors.colBg
-    property color borderColor: Colors.colBg
-    color: "transparent"
-    anchors.top: true
-    anchors.bottom: true
-    anchors.left: true
-    implicitWidth: borderThickness + barWidth + cornerRadius
-    exclusiveZone: borderThickness + barWidth
+
+    color: barColor
+    anchors {
+        top: true
+        left: true
+        right: true
+    }
+    implicitHeight: barHeight
+    exclusiveZone: barHeight
     WlrLayershell.layer: WlrLayer.Top
+    WlrLayershell.namespace: "quickshell-topbar"
+
     Item {
         anchors.fill: parent
-        // Left border strip — z: 0, sits underneath
+
+        // Left Section: SysInfo, Volume, Clock
+        RowLayout {
+            id: leftSection
+            anchors {
+                left: parent.left
+                leftMargin: 16
+                verticalCenter: parent.verticalCenter
+            }
+            spacing: 12
+
+            SysInfo {}
+
+            Separator {}
+
+            Volume {}
+
+            Separator {}
+
+            Clock {}
+        }
+
+        // Center Section: Workspaces
+        Workspaces {
+            anchors.centerIn: parent
+        }
+
+        // Right Section: CachyOS Symbol
+        RowLayout {
+            id: rightSection
+            anchors {
+                right: parent.right
+                rightMargin: 16
+                verticalCenter: parent.verticalCenter
+            }
+            spacing: 8
+
+            Item {
+                width: 26
+                height: 26
+                Layout.alignment: Qt.AlignVCenter
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: logoMouse.containsMouse ? Colors.colBlack : "transparent"
+
+                    Image {
+                        id: logoImg
+                        anchors.centerIn: parent
+                        width: 20
+                        height: 20
+                        sourceSize: Qt.size(20, 20)
+                        source: "file:///usr/share/icons/cachyos.svg"
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                    }
+
+                    // Distro fallback icon if SVG fails to load
+                    Text {
+                        anchors.centerIn: parent
+                        text: ""
+                        font.family: "JetBrainsMono Nerd Font"
+                        font.pixelSize: 16
+                        color: Colors.colGreen
+                        visible: logoImg.status !== Image.Ready
+                    }
+                }
+
+                MouseArea {
+                    id: logoMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: AppLauncherState.toggle()
+                }
+            }
+        }
+
+        // Subtle bottom border line
         Rectangle {
-            id: borderStrip
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            width: barWindow.borderThickness
-            color: barWindow.borderColor
-            z: 0
+            anchors {
+                left: parent.left
+                right: parent.right
+                bottom: parent.bottom
+            }
+            height: 1
+            color: Colors.colBlack
         }
-        Rectangle {
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.leftMargin: 0
-            width: barWindow.borderThickness + barWindow.barWidth
-            color: barWindow.barColor
-            z: 1
-        }
-        ConcaveCurves {
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.leftMargin: barWindow.borderThickness + barWindow.barWidth
-            radius: barWindow.cornerRadius
-            color: barWindow.barColor
-            isTop: true
-            z: 1
-        }
-        ConcaveCurves {
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.leftMargin: barWindow.borderThickness + barWindow.barWidth
-            radius: barWindow.cornerRadius
-            color: barWindow.barColor
-            isTop: false
-            z: 1
-        }
-    }
-    Workspaces {
-        anchors.top: parent.top
-        z: 2
-    }
-    Column {
-        anchors.bottom: parent.bottom
-        spacing: 20
-        z: 2
-        SysInfo {}
-        Volume {}
-        // Battery {}
-        Clock {}
     }
 }

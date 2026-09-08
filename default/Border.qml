@@ -15,6 +15,8 @@ Scope {
             id: screenRoot
             required property var modelData
 
+            // Top border disabled: TopBar occupies the top edge directly
+            /*
             PanelWindow {
                 screen: screenRoot.modelData
                 anchors {
@@ -28,6 +30,7 @@ Scope {
                 WlrLayershell.namespace: "quickshell-border-top"
                 color: root.borderColor
             }
+            */
 
             PanelWindow {
                 screen: screenRoot.modelData

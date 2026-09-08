@@ -4,9 +4,9 @@ import "../theme"
 
 Rectangle {
     Layout.preferredWidth: 1
-    Layout.preferredHeight: 16
+    Layout.preferredHeight: 14
     Layout.alignment: Qt.AlignVCenter
-    Layout.leftMargin: 0
-    Layout.rightMargin: 8
+    Layout.leftMargin: 2
+    Layout.rightMargin: 2
     color: Colors.colBlack
 }

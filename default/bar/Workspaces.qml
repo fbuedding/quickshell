@@ -2,42 +2,59 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell.Hyprland
 import "../theme"
+
 Item {
-    property string fontFamily
-    property int fontSize
-    implicitWidth: 30
-    implicitHeight: 9 * 20
-    Layout.preferredWidth: implicitWidth
-    Layout.preferredHeight: implicitHeight
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: 0
+    id: root
+    property string fontFamily: "JetBrainsMono Nerd Font"
+    property int fontSize: 12
+    implicitWidth: row.implicitWidth
+    implicitHeight: 26
+
+    Row {
+        id: row
+        anchors.centerIn: parent
+        spacing: 4
+
         Repeater {
             model: 9
             Rectangle {
-                Layout.preferredWidth: parent.width
-                Layout.preferredHeight: 20
-                color: "transparent"
+                width: 26
+                height: 24
+                radius: 5
+
                 property var workspace: Hyprland.workspaces.values.find(ws => ws.id === index + 1) ?? null
                 property bool isActive: Hyprland.focusedWorkspace?.id === (index + 1)
                 property bool hasWindows: (workspace?.toplevels?.values?.length ?? 0) > 0
+
+                color: isActive ? Colors.colBlack : (wsMouse.containsMouse ? "#2a273f" : "transparent")
+                border.color: isActive ? Colors.colPurple : "transparent"
+                border.width: 1
+
                 Text {
                     text: index + 1
-                    color: (parent.isActive || parent.hasWindows) ? Colors.colFg : Colors.colBrightBlack
-                    font.pixelSize: fontSize
-                    font.family: fontFamily
-                    font.bold: true
+                    color: parent.isActive ? Colors.colPurple : (parent.hasWindows ? Colors.colFg : Colors.colBrightBlack)
+                    font.pixelSize: root.fontSize
+                    font.family: root.fontFamily
+                    font.bold: parent.isActive || parent.hasWindows
                     anchors.centerIn: parent
                 }
+
                 Rectangle {
-                    width: 3
-                    height: 20
-                    color: parent.isActive ? Colors.colPurple : Colors.colBg
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.right: parent.right
+                    width: 12
+                    height: 2
+                    radius: 1
+                    color: Colors.colPurple
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 2
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    visible: parent.isActive
                 }
+
                 MouseArea {
+                    id: wsMouse
                     anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
                     onClicked: Hyprland.dispatch("hl.dsp.focus({ workspace = " + (index + 1) + " })")
                 }
             }
