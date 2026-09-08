@@ -33,6 +33,7 @@ PanelWindow {
         }
 
         // Top Inverted Curve (sits to the LEFT of the bar now)
+        // Corner in question (set to red for debugging):
         ConcaveCurves {
             anchors.top: parent.top
             anchors.right: parent.right
