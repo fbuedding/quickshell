@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import "./app_launcher"
 import "./bar"
+import "./power_menu"
 
 ShellRoot {
     Bar {}
@@ -9,6 +10,13 @@ ShellRoot {
     Variants {
 	model: Quickshell.screens
 	AppLauncher {
+	    property var modelData
+	    screen: modelData
+	}
+    }
+    Variants {
+	model: Quickshell.screens
+	PowerMenu {
 	    property var modelData
 	    screen: modelData
 	}

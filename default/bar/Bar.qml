@@ -3,7 +3,7 @@ import Quickshell.Wayland
 import QtQuick
 import QtQuick.Layouts
 import "../theme"
-import "../app_launcher"
+import "../power_menu"
 
 PanelWindow {
     id: barWindow
@@ -71,7 +71,7 @@ PanelWindow {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: AppLauncherState.toggle()
+                    onClicked: PowerMenuState.toggle()
                 }
             }
         }
