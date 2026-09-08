@@ -77,7 +77,7 @@ PanelWindow {
         clip: true
 
         // Slide from left to right
-        property real slideX: PowerMenuState.menuVisible ? 0 : -width
+        property real slideX: PowerMenuState.menuVisible ? 0 : -(width + Theme.cornerRadius + 2)
         Behavior on slideX {
             NumberAnimation {
                 duration: 250
@@ -85,11 +85,6 @@ PanelWindow {
             }
         }
         transform: Translate { x: panel.slideX }
-
-        opacity: PowerMenuState.menuVisible ? 1 : 0
-        Behavior on opacity {
-            NumberAnimation { duration: 200 }
-        }
 
         // ── Actions ─────────────────────────────────────────────────────────
         Column {
@@ -214,7 +209,6 @@ PanelWindow {
         anchors.top: panel.bottom
         anchors.left: panel.left
         transform: Translate { x: panel.slideX }
-        opacity: panel.opacity
     }
 
     // ── Top-right concave curve — seamless connection with topbar
@@ -228,14 +222,12 @@ PanelWindow {
         anchors.top: panel.top
         anchors.left: panel.right
         transform: Translate { x: panel.slideX }
-        opacity: panel.opacity
     }
 
     // ── Panel border contour (right edge, rounded bottom-right, bottom edge)
     Shape {
         anchors.fill: panel
         transform: Translate { x: panel.slideX }
-        opacity: panel.opacity
         preferredRendererType: Shape.CurveRenderer
 
         ShapePath {
