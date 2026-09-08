@@ -16,7 +16,7 @@ Item {
         spacing: 4
 
         Repeater {
-            model: 9
+            model: 10
             Rectangle {
                 width: 26
                 height: 24
