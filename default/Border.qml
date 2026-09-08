@@ -113,6 +113,15 @@ Scope {
                     anchors.bottom: parent.bottom
                     anchors.right: parent.right
                 }
+
+                // Inner shell border contour
+                Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                    border.width: Theme.borderWidth
+                    border.color: Theme.borderColor
+                    radius: Theme.cornerRadius
+                }
             }
         }
     }

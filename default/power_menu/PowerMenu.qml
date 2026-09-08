@@ -3,6 +3,7 @@ import Quickshell.Wayland
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Shapes
 import "../theme"
 import "../components"
 
@@ -208,6 +209,8 @@ PanelWindow {
         color: Colors.colBg
         isTop: true
         mirrored: false
+        borderWidth: Theme.borderWidth
+        borderColor: Theme.borderColor
         anchors.top: panel.bottom
         anchors.left: panel.left
         transform: Translate { x: panel.slideX }
@@ -220,9 +223,49 @@ PanelWindow {
         color: Colors.colBg
         isTop: true
         mirrored: false
+        borderWidth: Theme.borderWidth
+        borderColor: Theme.borderColor
         anchors.top: panel.top
         anchors.left: panel.right
         transform: Translate { x: panel.slideX }
         opacity: panel.opacity
+    }
+
+    // ── Panel border contour (right edge, rounded bottom-right, bottom edge)
+    Shape {
+        anchors.fill: panel
+        transform: Translate { x: panel.slideX }
+        opacity: panel.opacity
+        preferredRendererType: Shape.CurveRenderer
+
+        ShapePath {
+            fillColor: "transparent"
+            strokeColor: Theme.borderColor
+            strokeWidth: Theme.borderWidth
+
+            startX: panel.width
+            startY: Theme.cornerRadius
+
+            // Down right edge
+            PathLine {
+                x: panel.width
+                y: panel.height - Theme.cornerRadius
+            }
+
+            // Bottom-right corner
+            PathArc {
+                x: panel.width - Theme.cornerRadius
+                y: panel.height
+                radiusX: Theme.cornerRadius
+                radiusY: Theme.cornerRadius
+                direction: PathArc.Clockwise
+            }
+
+            // Across bottom edge
+            PathLine {
+                x: Theme.cornerRadius
+                y: panel.height
+            }
+        }
     }
 }

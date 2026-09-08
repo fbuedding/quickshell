@@ -9,6 +9,8 @@ Shape {
     property color color: Colors.colBg
     property bool isTop: true
     property bool mirrored: false   // true = horizontally flip (for right-side bars)
+    property int borderWidth: 0
+    property color borderColor: "transparent"
 
     implicitWidth: radius
     implicitHeight: radius
@@ -45,7 +47,24 @@ Shape {
 	    radiusY: root.radius
 	    direction: PathArc.Clockwise
 	}
-
     }
 
+    // Border along the curved arc
+    ShapePath {
+	fillColor: "transparent"
+	strokeColor: root.borderWidth > 0 ? root.borderColor : "transparent"
+	strokeWidth: root.borderWidth
+
+	startX: root.isTop ? 0 : root.radius
+	startY: root.isTop ? root.radius : root.radius
+
+	PathArc {
+	    x: root.isTop ? root.radius : 0
+	    y: 0
+	    radiusX: root.radius
+	    radiusY: root.radius
+	    direction: PathArc.Clockwise
+	}
+    }
 }
+

@@ -160,8 +160,6 @@ PanelWindow {
         topRightRadius: root.cornerRadius
         bottomLeftRadius: 0
         bottomRightRadius: 0
-        border.color: Colors.colBg
-        border.width: 1
 
         // Slide up / down
         transform: Translate { y: root.slideY }
@@ -474,6 +472,8 @@ PanelWindow {
         color: Colors.colBg
         isTop: false
         mirrored: true
+        borderWidth: Theme.borderWidth
+        borderColor: Theme.borderColor
         anchors.right: panel.left
         anchors.bottom: panel.bottom
         transform: Translate { y: root.slideY }
@@ -484,9 +484,63 @@ PanelWindow {
         color: Colors.colBg
         isTop: false
         mirrored: false
+        borderWidth: Theme.borderWidth
+        borderColor: Theme.borderColor
         anchors.left: panel.right
         anchors.bottom: panel.bottom
         transform: Translate { y: root.slideY }
+    }
+
+    // ── Panel border contour (left edge, top-left corner, top edge, top-right corner, right edge)
+    Shape {
+        anchors.fill: panel
+        transform: Translate { y: root.slideY }
+        preferredRendererType: Shape.CurveRenderer
+
+        ShapePath {
+            fillColor: "transparent"
+            strokeColor: Theme.borderColor
+            strokeWidth: Theme.borderWidth
+
+            startX: 0
+            startY: panel.height - root.cornerRadius
+
+            // Up left edge
+            PathLine {
+                x: 0
+                y: root.cornerRadius
+            }
+
+            // Top-left rounded corner
+            PathArc {
+                x: root.cornerRadius
+                y: 0
+                radiusX: root.cornerRadius
+                radiusY: root.cornerRadius
+                direction: PathArc.Clockwise
+            }
+
+            // Across top edge
+            PathLine {
+                x: panel.width - root.cornerRadius
+                y: 0
+            }
+
+            // Top-right rounded corner
+            PathArc {
+                x: panel.width
+                y: root.cornerRadius
+                radiusX: root.cornerRadius
+                radiusY: root.cornerRadius
+                direction: PathArc.Clockwise
+            }
+
+            // Down right edge
+            PathLine {
+                x: panel.width
+                y: panel.height - root.cornerRadius
+            }
+        }
     }
 }
 

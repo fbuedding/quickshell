@@ -8,4 +8,8 @@ QtObject {
 
     readonly property int borderThickness: 12
     readonly property int barHeight: 34
+
+    // Inner shell border
+    readonly property int borderWidth: 1
+    readonly property color borderColor: Colors.colBlack
 }
