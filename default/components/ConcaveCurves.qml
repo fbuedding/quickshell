@@ -43,7 +43,7 @@ Shape {
 	    y: root.isTop ? 0 : 0
 	    radiusX: root.radius
 	    radiusY: root.radius
-	    direction: root.isTop ? PathArc.Counterclockwise : PathArc.Clockwise
+	    direction: PathArc.Clockwise
 	}
 
     }
