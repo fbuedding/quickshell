@@ -1,11 +1,12 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
+import "./theme"
 
 Scope {
     id: root
     property int thickness: 12
-    property color borderColor: "#1e1e2d"
+    property color borderColor: Colors.colBg
 
     Variants {
         model: Quickshell.screens
@@ -16,7 +17,11 @@ Scope {
 
             PanelWindow {
                 screen: screenRoot.modelData
-                anchors { top: true; left: true; right: true }
+                anchors {
+                    top: true
+                    left: true
+                    right: true
+                }
                 implicitHeight: root.thickness
                 exclusiveZone: root.thickness
                 WlrLayershell.layer: WlrLayer.Bottom
@@ -26,7 +31,11 @@ Scope {
 
             PanelWindow {
                 screen: screenRoot.modelData
-                anchors { bottom: true; left: true; right: true }
+                anchors {
+                    bottom: true
+                    left: true
+                    right: true
+                }
                 implicitHeight: root.thickness
                 exclusiveZone: root.thickness
                 WlrLayershell.layer: WlrLayer.Bottom
@@ -36,7 +45,11 @@ Scope {
 
             PanelWindow {
                 screen: screenRoot.modelData
-                anchors { top: true; bottom: true; left: true }
+                anchors {
+                    top: true
+                    bottom: true
+                    left: true
+                }
                 implicitWidth: root.thickness
                 exclusiveZone: root.thickness
                 WlrLayershell.layer: WlrLayer.Bottom
@@ -46,7 +59,11 @@ Scope {
 
             PanelWindow {
                 screen: screenRoot.modelData
-                anchors { top: true; bottom: true; right: true }
+                anchors {
+                    top: true
+                    bottom: true
+                    right: true
+                }
                 implicitWidth: root.thickness
                 exclusiveZone: root.thickness
                 WlrLayershell.layer: WlrLayer.Bottom

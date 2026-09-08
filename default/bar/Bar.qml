@@ -66,6 +66,7 @@ PanelWindow {
         spacing: 20
         z: 2
         SysInfo {}
+        Volume {}
         // Battery {}
         Clock {}
     }
