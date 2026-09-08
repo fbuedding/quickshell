@@ -213,4 +213,16 @@ PanelWindow {
         transform: Translate { x: panel.slideX }
         opacity: panel.opacity
     }
+
+    // ── Top-right concave curve — seamless connection with topbar
+    ConcaveCurves {
+        radius: Theme.cornerRadius
+        color: Colors.colBg
+        isTop: true
+        mirrored: false
+        anchors.top: panel.top
+        anchors.left: panel.right
+        transform: Translate { x: panel.slideX }
+        opacity: panel.opacity
+    }
 }
