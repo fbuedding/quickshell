@@ -82,7 +82,7 @@ Rectangle {
         }
 
         Text {
-            text: "Keine Medienwiedergabe"
+            text: I18n.t("no_media")
             font.family: "JetBrainsMono Nerd Font"
             font.pixelSize: 12
             color: Colors.colMuted
@@ -188,22 +188,24 @@ Rectangle {
                 spacing: 3
 
                 Text {
-                    Layout.fillWidth: true
-                    text: (root.player && root.player.trackTitle) ? root.player.trackTitle : "Unbekannter Titel"
+                    id: titleText
+                    text: (root.player && root.player.trackTitle) ? root.player.trackTitle : I18n.t("unknown_title")
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 13
                     font.bold: true
                     color: Colors.colFg
                     elide: Text.ElideRight
+                    Layout.fillWidth: true
                 }
 
                 Text {
-                    Layout.fillWidth: true
-                    text: (root.player && root.player.trackArtist) ? root.player.trackArtist : "Unbekannter Künstler"
+                    id: artistText
+                    text: (root.player && root.player.trackArtist) ? root.player.trackArtist : I18n.t("unknown_artist")
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 11
                     color: Colors.colRose
                     elide: Text.ElideRight
+                    Layout.fillWidth: true
                 }
 
                 Text {

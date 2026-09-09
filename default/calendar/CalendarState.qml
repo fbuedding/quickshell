@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "../notifications"
+import "../theme"
 
 Singleton {
     id: root
@@ -174,19 +175,18 @@ Singleton {
     }
 
     function monthName(m) {
-        const names = [
-            "Januar", "Februar", "März", "April", "Mai", "Juni",
-            "Juli", "August", "September", "Oktober", "November", "Dezember"
-        ];
-        return names[m] || "";
+        return Qt.locale().monthName(m, Locale.LongFormat);
     }
 
     function formatSelectedDateHeader() {
-        const days = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
-        let dayName = days[selectedDate.getDay()];
+        let dayName = Qt.locale().dayName(selectedDate.getDay(), Locale.LongFormat);
         let dayNum = selectedDate.getDate();
         let mName = monthName(selectedDate.getMonth());
-        return dayName + ", " + dayNum + ". " + mName;
+        if (I18n.lang === "de") {
+            return dayName + ", " + dayNum + ". " + mName;
+        } else {
+            return dayName + ", " + mName + " " + dayNum;
+        }
     }
 
     function getWeekNumber(d) {

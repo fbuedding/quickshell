@@ -119,7 +119,7 @@ PanelWindow {
                 spacing: 10
 
                 Text {
-                    text: "Kontrollzentrum"
+                    text: I18n.t("control_center")
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 15
                     font.bold: true
@@ -152,7 +152,7 @@ PanelWindow {
                         }
 
                         Text {
-                            text: "Löschen"
+                            text: I18n.t("clear_all")
                             font.family: "JetBrainsMono Nerd Font"
                             font.pixelSize: 11
                             color: Colors.colFg
@@ -328,7 +328,7 @@ PanelWindow {
                 Layout.fillWidth: true
 
                 Text {
-                    text: "Benachrichtigungen"
+                    text: I18n.t("notifications")
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 13
                     font.bold: true
@@ -376,7 +376,7 @@ PanelWindow {
                     }
 
                     Text {
-                        text: "Keine Benachrichtigungen"
+                        text: I18n.t("no_notifications")
                         font.family: "JetBrainsMono Nerd Font"
                         font.pixelSize: 12
                         color: Colors.colMuted

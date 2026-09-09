@@ -116,29 +116,29 @@ PanelWindow {
             Repeater {
                 model: [
                     {
-                        name: "Suspend",
-                        desc: "Bereitschaft",
+                        name: I18n.t("suspend"),
+                        desc: I18n.t("suspend_desc"),
                         icon: "󰤄",
                         iconColor: Colors.colBlue,
                         cmd: "systemctl suspend"
                     },
                     {
-                        name: "Logout",
-                        desc: "Abmelden",
+                        name: I18n.t("logout"),
+                        desc: I18n.t("logout_desc"),
                         icon: "󰍃",
                         iconColor: Colors.colPurple,
                         cmd: "hyprshutdown --vt 2"
                     },
                     {
-                        name: "Reboot",
-                        desc: "Neustart",
+                        name: I18n.t("reboot"),
+                        desc: I18n.t("reboot_desc"),
                         icon: "󰜉",
                         iconColor: Colors.colYellow,
                         cmd: "hyprshutdown -t 'Restarting...' --post-cmd 'reboot'"
                     },
                     {
-                        name: "Shutdown",
-                        desc: "Herunterfahren",
+                        name: I18n.t("shutdown"),
+                        desc: I18n.t("shutdown_desc"),
                         icon: "⏻",
                         iconColor: Colors.colRed,
                         cmd: "hyprshutdown -t 'Shutting down...' --post-cmd 'shutdown -P 0'"

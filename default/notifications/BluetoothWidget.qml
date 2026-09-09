@@ -163,7 +163,7 @@ Rectangle {
             }
 
             Text {
-                text: "GEPAARTE GERÄTE"
+                text: I18n.t("paired_devices")
                 font.family: "JetBrainsMono Nerd Font"
                 font.pixelSize: 9
                 font.bold: true
@@ -173,7 +173,7 @@ Rectangle {
 
             // Empty state if no paired devices
             Text {
-                text: "Keine gepaarten Geräte"
+                text: I18n.t("no_paired_devices")
                 font.family: "JetBrainsMono Nerd Font"
                 font.pixelSize: 11
                 color: Colors.colMuted

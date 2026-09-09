@@ -205,6 +205,27 @@ Create `~/.config/quickshell/default/calendar/calendars.local.json` (gitignored)
 
 ---
 
+## Localization (i18n)
+
+The shell automatically adapts to your system language based on your locale (`Qt.locale().name` / `$LANG`). It currently ships with English (`en`) and German (`de`).
+
+### Overriding Language
+To force a specific language regardless of your system locale, start Quickshell with the `QS_LANG` environment variable:
+
+```bash
+QS_LANG=en quickshell -d
+```
+
+### Adding a New Language
+To add a new language (e.g. French `fr`, Spanish `es`, Italian `it`):
+1. Open `default/i18n/I18n.qml`.
+2. Copy the `"en"` dictionary inside the `locales` property.
+3. Rename the key to your language code (e.g. `"fr"`).
+4. Translate the string values. Any missing keys automatically fall back to English.
+5. Month names and weekdays format automatically via `Qt.locale()`.
+
+---
+
 ## Hyprland Integration
 
 ### 1. Traditional Syntax (`~/.config/hypr/hyprland.conf`)

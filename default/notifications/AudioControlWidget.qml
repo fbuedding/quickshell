@@ -116,7 +116,7 @@ Rectangle {
                 Layout.fillWidth: true
 
                 Text {
-                    text: "Audio-Ausgabe"
+                    text: I18n.t("audio_output")
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 13
                     font.bold: true
@@ -265,7 +265,7 @@ Rectangle {
 
         // ── Ausgabegeräte Section ────────────────────────────────────────────
         Text {
-            text: "AUSGABEGERÄTE"
+            text: I18n.t("output_devices")
             font.family: "JetBrainsMono Nerd Font"
             font.pixelSize: 9
             font.bold: true
@@ -368,7 +368,7 @@ Rectangle {
                 Layout.fillWidth: true
 
                 Text {
-                    text: "Mikrofon-Eingang"
+                    text: I18n.t("mic_input")
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 13
                     font.bold: true

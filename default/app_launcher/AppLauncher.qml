@@ -240,7 +240,7 @@ PanelWindow {
 
                         Text {
                             anchors.fill: parent
-                            text: root.isSearching ? "" : "Search apps…"
+                            text: root.isSearching ? "" : I18n.t("search_apps")
                             color: Colors.colBrightBlack
                             opacity: 0.28
                             font {
@@ -314,7 +314,7 @@ PanelWindow {
                 Text {
                     anchors.centerIn: parent
                     visible: root.filteredApps.length === 0
-                    text: "No apps found"
+                    text: I18n.t("no_apps_found")
                     color: Colors.colBrightBlack
                     opacity: 0.28
                     font {
@@ -430,7 +430,7 @@ PanelWindow {
                                         Text {
                                             id: recentLabel
                                             anchors.centerIn: parent
-                                            text: "recent"
+                                            text: I18n.t("recent")
                                             font {
                                                 pixelSize: 9
                                                 family: "JetBrainsMono Nerd Font"

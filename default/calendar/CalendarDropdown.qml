@@ -144,7 +144,7 @@ PanelWindow {
                     Text {
                         id: heuteText
                         anchors.centerIn: parent
-                        text: "Heute"
+                        text: I18n.t("today")
                         font.family: "JetBrainsMono Nerd Font"
                         font.pixelSize: 11
                         font.bold: true
@@ -268,7 +268,7 @@ PanelWindow {
                 Text {
                     Layout.preferredWidth: 24
                     horizontalAlignment: Text.AlignHCenter
-                    text: "KW"
+                    text: I18n.t("calendar_week")
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 10
                     font.bold: true
@@ -276,7 +276,7 @@ PanelWindow {
                 }
 
                 Repeater {
-                    model: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+                    model: I18n.shortWeekdays
                     delegate: Text {
                         required property string modelData
                         required property int index
@@ -451,7 +451,7 @@ PanelWindow {
                     }
 
                     Text {
-                        text: "Keine Termine für diesen Tag"
+                        text: I18n.t("no_events_day")
                         font.family: "JetBrainsMono Nerd Font"
                         font.pixelSize: 11
                         color: Colors.colMuted
@@ -504,7 +504,7 @@ PanelWindow {
                                         Layout.fillWidth: true
 
                                         Text {
-                                            text: eventCard.modelData.time || ""
+                                            text: (eventCard.modelData.allDay || eventCard.modelData.time === "Ganztägig") ? I18n.t("all_day") : (eventCard.modelData.time || "")
                                             font.family: "JetBrainsMono Nerd Font"
                                             font.pixelSize: 10
                                             font.bold: true
@@ -548,7 +548,7 @@ PanelWindow {
                     Text {
                         property int extraCount: CalendarState.eventsForDate(CalendarState.selectedDate).length - 5
                         visible: extraCount > 0
-                        text: "+ " + extraCount + " weitere Termine"
+                        text: "+ " + extraCount + " " + I18n.t("more_events")
                         font.family: "JetBrainsMono Nerd Font"
                         font.pixelSize: 10
                         font.italic: true
