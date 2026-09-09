@@ -224,6 +224,15 @@ To add a new language (e.g. French `fr`, Spanish `es`, Italian `it`):
 4. Translate the string values. Any missing keys automatically fall back to English.
 5. Month names and weekdays format automatically via `Qt.locale()`.
 
+### Customizing Time and Date Formats
+Time and date format strings follow standard Qt date/time syntax (e.g. `HH:mm`, `h:mm AP`, `dddd, MMMM d`):
+- Per language: Adjust `clock_format`, `date_header_format`, or `month_header_format` in `default/i18n/I18n.qml`.
+- Global overrides via environment variables:
+  ```bash
+  QS_CLOCK_FORMAT="h:mm AP" QS_DATE_FORMAT="ddd, MMM d" quickshell -d
+  ```
+- Or set properties directly in `default/i18n/I18n.qml` (e.g. `clockFormatOverride: "HH:mm:ss"`).
+
 ---
 
 ## Hyprland Integration

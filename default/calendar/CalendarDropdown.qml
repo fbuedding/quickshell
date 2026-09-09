@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import Quickshell.Io
 import Quickshell.Hyprland
 import "../theme"
+import "../i18n"
 import "../components"
 
 PanelWindow {
@@ -126,7 +127,7 @@ PanelWindow {
                 spacing: 6
 
                 Text {
-                    text: CalendarState.monthName(CalendarState.viewMonth) + " " + CalendarState.viewYear
+                    text: I18n.formatDate(new Date(CalendarState.viewYear, CalendarState.viewMonth, 1), I18n.monthHeaderFormat)
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 15
                     font.bold: true

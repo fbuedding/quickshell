@@ -6,6 +6,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
 import "../theme"
+import "../i18n"
 import "../components"
 
 PanelWindow {

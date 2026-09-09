@@ -1,4 +1,4 @@
 singleton Colors 1.0 Colors.qml
 singleton Theme 1.0 Theme.qml
-singleton I18n 1.0 ../i18n/I18n.qml
+
 

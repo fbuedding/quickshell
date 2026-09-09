@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import "../notifications"
 import "../theme"
+import "../i18n"
 
 Singleton {
     id: root
@@ -175,18 +176,12 @@ Singleton {
     }
 
     function monthName(m) {
-        return Qt.locale().monthName(m, Locale.LongFormat);
+        let loc = Qt.locale(I18n.lang);
+        return loc.monthName(m, Locale.LongFormat);
     }
 
     function formatSelectedDateHeader() {
-        let dayName = Qt.locale().dayName(selectedDate.getDay(), Locale.LongFormat);
-        let dayNum = selectedDate.getDate();
-        let mName = monthName(selectedDate.getMonth());
-        if (I18n.lang === "de") {
-            return dayName + ", " + dayNum + ". " + mName;
-        } else {
-            return dayName + ", " + mName + " " + dayNum;
-        }
+        return I18n.formatDate(selectedDate, I18n.dateHeaderFormat);
     }
 
     function getWeekNumber(d) {

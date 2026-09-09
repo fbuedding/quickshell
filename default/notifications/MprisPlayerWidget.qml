@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Mpris
 import "../theme"
+import "../i18n"
 
 Rectangle {
     id: root

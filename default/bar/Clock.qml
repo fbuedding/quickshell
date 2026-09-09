@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import "../theme"
+import "../i18n"
 import "../calendar"
 
 Item {
@@ -37,7 +38,7 @@ Item {
 
             Text {
                 Layout.alignment: Qt.AlignVCenter
-                text: Qt.formatDateTime(clock.date, "HH:mm")
+                text: I18n.formatTime(clock.date)
                 color: Colors.colFg
                 font {
                     family: "JetBrainsMono Nerd Font"

@@ -5,6 +5,7 @@ import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Shapes
 import "../theme"
+import "../i18n"
 import "../components"
 
 PanelWindow {

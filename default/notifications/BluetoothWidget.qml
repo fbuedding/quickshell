@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Bluetooth
 import "../theme"
+import "../i18n"
 
 Rectangle {
     id: root
