@@ -3,6 +3,7 @@ import Quickshell.Wayland
 import Quickshell.Io
 import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
+import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
@@ -12,6 +13,15 @@ import "../components"
 PanelWindow {
     id: root
     property var screen
+
+    readonly property bool isFullscreen: {
+        let mon = root.screen ? Hyprland.monitorFor(root.screen) : null;
+        if (mon?.activeWorkspace?.hasFullscreen) return true;
+        if (Hyprland.focusedWorkspace?.hasFullscreen) return true;
+        let top = Hyprland.activeToplevel;
+        if (top?.lastIpcObject && (top.lastIpcObject.fullscreen > 0 || top.lastIpcObject.fullscreen === true)) return true;
+        return false;
+    }
 
     IpcHandler {
         target: "notifications"
@@ -35,6 +45,8 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: NotificationState.panelVisible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     WlrLayershell.namespace: "quickshell-notification-panel"
+
+    exclusionMode: root.isFullscreen ? ExclusionMode.Ignore : ExclusionMode.Normal
 
     anchors {
         top: true
@@ -75,12 +87,19 @@ PanelWindow {
             top: parent.top
             bottom: parent.bottom
             right: parent.right
+            topMargin: root.isFullscreen ? 12 : 0
+            bottomMargin: root.isFullscreen ? 12 : 0
+            rightMargin: root.isFullscreen ? 12 : 0
         }
         width: 420
         color: Colors.colBg
+        radius: root.isFullscreen ? 12 : 0
+        border.width: root.isFullscreen ? Theme.borderWidth : 0
+        border.color: Theme.borderColor
+        clip: root.isFullscreen
 
         // Slide animation from right to left
-        property real slideX: NotificationState.panelVisible ? 0 : width + Theme.cornerRadius + 4
+        property real slideX: NotificationState.panelVisible ? 0 : (width + anchors.rightMargin + Theme.cornerRadius + 10)
         Behavior on slideX {
             NumberAnimation {
                 duration: 250
@@ -391,6 +410,7 @@ PanelWindow {
         width: Theme.cornerRadius
         height: Theme.cornerRadius
         transform: Translate { x: panel.slideX }
+        visible: !root.isFullscreen
 
         ConcaveCurves {
             anchors.fill: parent
@@ -410,6 +430,7 @@ PanelWindow {
         width: Theme.cornerRadius
         height: Theme.cornerRadius
         transform: Translate { x: panel.slideX }
+        visible: !root.isFullscreen
 
         ConcaveCurves {
             anchors.fill: parent
@@ -427,6 +448,7 @@ PanelWindow {
         anchors.fill: panel
         transform: Translate { x: panel.slideX }
         preferredRendererType: Shape.CurveRenderer
+        visible: !root.isFullscreen
 
         ShapePath {
             fillColor: "transparent"
