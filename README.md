@@ -308,9 +308,10 @@ Kernelemente für ein geschliffenes Alltags-Desktop-Gefühl, die visuelles Feedb
   - Monatsraster (42 Tage), ISO-Kalenderwochen (KW), hervorgehobener heutiger & ausgewählter Tag, Vor-/Zurück-Navigation und „Heute“-Button.
   - **Kalender-Integration (Google Calendar / iCal / Thunderbird):** Direkte Feeds über [`default/calendar/calendars.json`](default/calendar/calendars.json) mit Hintergrund-Synchronisation via Python-Daemon ([`default/scripts/fetch_calendar.py`](default/scripts/fetch_calendar.py)).
   - Farbige Termin-Indikatoren auf Monatstagen; Agenda zeigt Startzeit, Titel und Kalender-Badge; Thunderbird-Schnellstarttaste.
-- [ ] **Nativer Audio-Sink-Umschalter & Volume-Slider**
-  - Schnelle Lautstärkeregelung per Schieberegler und 1-Klick-Umschaltung des Audio-Ausgabegeräts (z. B. Kopfhörer ↔ Lautsprecher ↔ Monitor).
-  - Nativ über `Quickshell.Services.Pipewire` direkt im Kontrollzentrum oder als Popover an der Leiste.
+- [x] **Nativer Audio-Sink-Umschalter & Volume-Slider**
+  - Schnelle Lautstärkeregelung per Schieberegler (Drag & Scroll) und 1-Klick-Umschaltung des Audio-Ausgabegeräts (z. B. HyperX Cloud III ↔ LG ULTRAGEAR Monitor).
+  - Nativ über `Quickshell.Services.Pipewire` direkt im Kontrollzentrum ([`default/notifications/AudioControlWidget.qml`](default/notifications/AudioControlWidget.qml)).
+  - Klick auf das Lautstärke-Icon in der TopBar ([`default/bar/Volume.qml`](default/bar/Volume.qml)) öffnet direkt das Kontrollzentrum; Mittelklick wechselt das Audiogerät nahtlos durch.
   - *Ersetzt:* Das externe GTK-Tool `pwvucontrol` für alltägliche Pegelanpassungen.
 
 ---

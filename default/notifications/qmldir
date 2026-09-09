@@ -3,3 +3,4 @@ NotificationPopup 1.0 NotificationPopup.qml
 NotificationPanel 1.0 NotificationPanel.qml
 NotificationCard 1.0 NotificationCard.qml
 MprisPlayerWidget 1.0 MprisPlayerWidget.qml
+AudioControlWidget 1.0 AudioControlWidget.qml

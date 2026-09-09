@@ -188,6 +188,11 @@ PanelWindow {
                 }
             }
 
+            // ── Audio Output & Volume Control Widget ────────────────────────
+            AudioControlWidget {
+                Layout.fillWidth: true
+            }
+
             // ── MPRIS Music Player Widget ────────────────────────────────────
             MprisPlayerWidget {
                 Layout.fillWidth: true
