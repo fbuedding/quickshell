@@ -32,7 +32,7 @@ This shell acts as a unified desktop environment for Hyprland, replacing several
    - Full DBus `org.freedesktop.Notifications` implementation. Replaces external notification daemons.
    - Interactive toast popups (top right) with action buttons and hover pause.
    - Slide-in side panel from the right screen edge with concave corner morphing.
-   - Quick toggles row: Do Not Disturb, Bluetooth manager, and Microphone mute.
+   - Quick toggles row: Bluetooth manager, Do Not Disturb, Microphone mute, and Theme switcher.
    - Integrated Bluetooth manager: adapter toggle, device scan, and one-click connect/disconnect.
    - Audio output sink switcher: select output devices directly without external tools.
    - Microphone control: live input level slider and toggle.
@@ -237,6 +237,49 @@ Or directly in `default/i18n/I18n.qml` (`clockFormatOverride: "HH:mm:ss"`).
 
 ---
 
+## Theme System and Switcher
+
+The shell supports instant theme switching at runtime across all components without restarting Quickshell.
+
+### Included Themes
+- `rose-pine-moon` (Rosé Pine Moon - default)
+- `tokyo-night` (Tokyo Night)
+- `catppuccin-mocha` (Catppuccin Mocha)
+
+### Switching Themes
+- **Control Center:** Click the theme toggle button in the quick toggles row of the notification panel.
+- **Quickshell IPC:**
+  ```bash
+  qs ipc call theme next                # Cycle to the next theme
+  qs ipc call theme set tokyo-night     # Switch directly to a theme
+  qs ipc call theme current             # Print the active theme key
+  qs ipc call theme list                # List available themes
+  ```
+- **Hyprland Keybinding:**
+  ```ini
+  bind = SUPER, T, exec, qs ipc call theme next
+  ```
+
+### State Persistence
+The active theme is automatically saved to `~/.config/quickshell/current_theme` and reloaded on startup.
+
+### External Listener Hook (`on_theme_change.sh`)
+External programs (such as Hyprland window borders, terminal emulators, or wallpaper daemons) can react to theme changes via a hook script:
+1. Copy the example hook script:
+   ```bash
+   cp ~/.config/quickshell/default/scripts/on_theme_change.sh.example ~/.config/quickshell/on_theme_change.sh
+   chmod +x ~/.config/quickshell/on_theme_change.sh
+   ```
+2. When the theme changes, Quickshell executes `~/.config/quickshell/on_theme_change.sh <theme-name>`.
+3. The provided example updates Hyprland active border colors dynamically via `hyprctl keyword general:col.active_border`. External tools can also monitor `~/.config/quickshell/current_theme` using `inotifywait` or systemd path units.
+
+### Gotchas and Integration Tips
+- **Window Borders:** Window border colors are managed by Hyprland, not Quickshell. Use `on_theme_change.sh` to keep Hyprland active border colors synchronized with the shell palette.
+- **Icon Themes and GTK/Qt Apps:** System tray and app launcher icons follow the installed system icon theme (e.g. `rose-pine-moon-icons` or `Papirus`). Quickshell palette switching adjusts the shell UI, but does not alter standalone GTK/Qt application theme configurations unless scripted in `on_theme_change.sh`.
+- **Adding Custom Themes:** Open `default/theme/Colors.qml`, add your theme key to `availableThemes`, and define your color palette dictionary in `themes`.
+
+---
+
 ## Hyprland Integration
 
 ### 1. Traditional Syntax (`~/.config/hypr/hyprland.conf`)
@@ -259,6 +302,7 @@ bind = SUPER, R, exec, qs ipc call applauncher toggle
 bind = SUPER, Escape, exec, qs ipc call powermenu toggle
 bind = SUPER, I, exec, qs ipc call notifications toggle
 bind = SUPER, C, exec, qs ipc call calendar toggle
+bind = SUPER, T, exec, qs ipc call theme next
 
 # Disable animations on static border overlays
 layerrule = noanim, quickshell-corners
@@ -280,11 +324,13 @@ local launcher = "qs ipc call applauncher toggle"
 local powerMenu = "qs ipc call powermenu toggle"
 local controlCenter = "qs ipc call notifications toggle"
 local calendar = "qs ipc call calendar toggle"
+local themeNext = "qs ipc call theme next"
 
 hl.bind(mainMod .. " + " .. "R", hl.dsp.exec_cmd(launcher))
 hl.bind(mainMod .. " + " .. "Escape", hl.dsp.exec_cmd(powerMenu))
 hl.bind(mainMod .. " + " .. "I", hl.dsp.exec_cmd(controlCenter))
 hl.bind(mainMod .. " + " .. "C", hl.dsp.exec_cmd(calendar))
+hl.bind(mainMod .. " + " .. "T", hl.dsp.exec_cmd(themeNext))
 
 -- Corner rounding synchronization
 hl.config({
@@ -347,12 +393,13 @@ hl.config({
 │   ├── components/
 │   │   └── ConcaveCurves.qml    # ShapePath concave corner transition component
 │   ├── theme/
-│   │   ├── Colors.qml           # Rosé Pine Moon palette
+│   │   ├── Colors.qml           # Multi-theme palettes and switcher logic
 │   │   ├── Theme.qml            # Dimensions, roundings, and borders
 │   │   └── qmldir               # Theme singleton registry
 │   └── scripts/
 │       ├── cycle_audio.py       # Middle-click audio sink cycle script
-│       └── fetch_calendar.py    # iCal/Google calendar parser and cache daemon
+│       ├── fetch_calendar.py    # iCal/Google calendar parser and cache daemon
+│       └── on_theme_change.sh.example # Example hook script for theme changes
 ├── README.md                    # English documentation
 └── README.de.md                 # German documentation
 ```
@@ -380,6 +427,12 @@ qs ipc call notifications dismissAll
 qs ipc call calendar toggle
 qs ipc call calendar today
 qs ipc call osd show
+
+# Theme switching
+qs ipc call theme next
+qs ipc call theme set tokyo-night
+qs ipc call theme current
+qs ipc call theme list
 
 # Clear in-RAM calendar secrets cache
 python3 ~/.config/quickshell/default/scripts/fetch_calendar.py --clear-session-secrets

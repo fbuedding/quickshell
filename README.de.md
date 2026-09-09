@@ -32,7 +32,7 @@ Diese Shell dient als zentrale Desktop-Umgebung für Hyprland und ersetzt mehrer
    - Vollwertiger DBus `org.freedesktop.Notifications` Server. Ersetzt externe Notification-Daemons.
    - Interaktive Toast-Popups oben rechts mit Aktions-Buttons und Pausieren bei Maus-Hover.
    - Ausfahrbares Seitenpanel von der rechten Bildschirmkante mit konkavem Ecken-Morphing.
-   - Schnellschalter-Zeile: Nicht Stören, Bluetooth-Manager und Mikrofon-Stummschaltung.
+   - Schnellschalter-Zeile: Bluetooth-Manager, Nicht Stören, Mikrofon-Stummschaltung und Theme-Switcher.
    - Integrierter Bluetooth-Manager: Adapter ein/aus, Gerätesuche und 1-Klick-Verbindung.
    - Audio-Ausgabe-Umschalter: Direkte Auswahl des aktiven PipeWire-Sinks ohne Zusatztools.
    - Mikrofon-Steuerung: Schieberegler für Eingangspegel und Mute-Schalter.
@@ -237,6 +237,49 @@ Oder direkt in `default/i18n/I18n.qml` (`clockFormatOverride: "HH:mm:ss"`).
 
 ---
 
+## Theme-System und Theme-Switcher
+
+Die Shell unterstützt dynamisches Theme-Switching zur Laufzeit über alle Komponenten hinweg ohne Quickshell-Neustart.
+
+### Enthaltene Themes
+- `rose-pine-moon` (Rosé Pine Moon - Standard)
+- `tokyo-night` (Tokyo Night)
+- `catppuccin-mocha` (Catppuccin Mocha)
+
+### Theme wechseln
+- **Kontrollzentrum:** Klick auf den Theme-Button in der Schnelleinstellungen-Zeile des Benachrichtigungs-Panels.
+- **Quickshell IPC:**
+  ```bash
+  qs ipc call theme next                # Zum nächsten Theme wechseln
+  qs ipc call theme set tokyo-night     # Direkt zu einem Theme wechseln
+  qs ipc call theme current             # Aktiven Theme-Schlüssel ausgeben
+  qs ipc call theme list                # Verfügbare Themes auflisten
+  ```
+- **Hyprland Tastenkürzel:**
+  ```ini
+  bind = SUPER, T, exec, qs ipc call theme next
+  ```
+
+### Zustand-Persistenz
+Das aktive Theme wird automatisch in `~/.config/quickshell/current_theme` gespeichert und beim Start wiederhergestellt.
+
+### Externer Hook-Mechanismus (`on_theme_change.sh`)
+Externe Programme (wie Hyprland-Fensterrahmen, Terminals oder Wallpaper-Daemons) können über ein Hook-Skript auf Theme-Änderungen reagieren:
+1. Beispielskript kopieren:
+   ```bash
+   cp ~/.config/quickshell/default/scripts/on_theme_change.sh.example ~/.config/quickshell/on_theme_change.sh
+   chmod +x ~/.config/quickshell/on_theme_change.sh
+   ```
+2. Bei jedem Theme-Wechsel führt Quickshell `~/.config/quickshell/on_theme_change.sh <theme-name>` aus.
+3. Das mitgelieferte Beispiel aktualisiert automatisch die aktiven Rahmenfarben in Hyprland (`hyprctl keyword general:col.active_border`). Externe Tools können `~/.config/quickshell/current_theme` alternativ auch über `inotifywait` oder systemd-Path-Units überwachen.
+
+### Wichtige Hinweise und Integration (Gotchas)
+- **Fensterrahmen:** Rahmenfarben werden von Hyprland verwaltet, nicht von Quickshell. Nutze `on_theme_change.sh`, damit Hyprlands aktive Rahmenfarben synchron mit der Shell wechseln.
+- **Icon-Themes und GTK/Qt-Apps:** System-Tray- und App-Launcher-Icons richten sich nach dem installierten System-Icon-Theme (z. B. `rose-pine-moon-icons` oder `Papirus`). Das Umschalten der Shell-Palette passt die Oberfläche der Shell an, ändert jedoch nicht die Theme-Konfiguration eigenständiger GTK/Qt-Programme, es sei denn, dies wird in `on_theme_change.sh` skriptbasiert ausgelöst.
+- **Eigene Themes hinzufügen:** Öffne `default/theme/Colors.qml`, trage den Namen in `availableThemes` ein und definiere die Farbpalette im `themes`-Dictionary.
+
+---
+
 ## Hyprland-Integration
 
 ### 1. Klassische Syntax (`~/.config/hypr/hyprland.conf`)
@@ -259,6 +302,7 @@ bind = SUPER, R, exec, qs ipc call applauncher toggle
 bind = SUPER, Escape, exec, qs ipc call powermenu toggle
 bind = SUPER, I, exec, qs ipc call notifications toggle
 bind = SUPER, C, exec, qs ipc call calendar toggle
+bind = SUPER, T, exec, qs ipc call theme next
 
 # Animationen auf statischen Rand-Overlays deaktivieren
 layerrule = noanim, quickshell-corners
@@ -280,11 +324,13 @@ local launcher = "qs ipc call applauncher toggle"
 local powerMenu = "qs ipc call powermenu toggle"
 local controlCenter = "qs ipc call notifications toggle"
 local calendar = "qs ipc call calendar toggle"
+local themeNext = "qs ipc call theme next"
 
 hl.bind(mainMod .. " + " .. "R", hl.dsp.exec_cmd(launcher))
 hl.bind(mainMod .. " + " .. "Escape", hl.dsp.exec_cmd(powerMenu))
 hl.bind(mainMod .. " + " .. "I", hl.dsp.exec_cmd(controlCenter))
 hl.bind(mainMod .. " + " .. "C", hl.dsp.exec_cmd(calendar))
+hl.bind(mainMod .. " + " .. "T", hl.dsp.exec_cmd(themeNext))
 
 -- Eckenrundung synchronisieren
 hl.config({
@@ -347,12 +393,13 @@ hl.config({
 │   ├── components/
 │   │   └── ConcaveCurves.qml    # ShapePath-Komponente für konkave Rundungen
 │   ├── theme/
-│   │   ├── Colors.qml           # Rosé Pine Moon Farbpalette
+│   │   ├── Colors.qml           # Theme-Paletten und Switcher-Logik
 │   │   ├── Theme.qml            # Maße, Eckenradien und Rahmen
 │   │   └── qmldir               # Theme-Singleton-Registrierung
 │   └── scripts/
 │       ├── cycle_audio.py       # Audio-Sink Durchwechsel-Skript (Mittelklick)
-│       └── fetch_calendar.py    # iCal-Parser und Cache-Daemon
+│       ├── fetch_calendar.py    # iCal-Parser und Cache-Daemon
+│       └── on_theme_change.sh.example # Beispiel-Hook-Skript für Theme-Wechsel
 ├── README.md                    # Englische Dokumentation
 └── README.de.md                 # Deutsche Dokumentation
 ```
@@ -380,6 +427,12 @@ qs ipc call notifications dismissAll
 qs ipc call calendar toggle
 qs ipc call calendar today
 qs ipc call osd show
+
+# Theme-Umschaltung
+qs ipc call theme next
+qs ipc call theme set tokyo-night
+qs ipc call theme current
+qs ipc call theme list
 
 # Flüchtigen Kalender-Secrets-Cache im RAM leeren
 python3 ~/.config/quickshell/default/scripts/fetch_calendar.py --clear-session-secrets

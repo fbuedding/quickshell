@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Example hook script triggered by Quickshell when the desktop theme changes.
+# To activate:
+#   cp ~/.config/quickshell/default/scripts/on_theme_change.sh.example ~/.config/quickshell/on_theme_change.sh
+#   chmod +x ~/.config/quickshell/on_theme_change.sh
+
+THEME="$1"
+
+case "$THEME" in
+  "rose-pine-moon")
+    # Update Hyprland active border
+    hyprctl keyword general:col.active_border "rgba(c4a7e7ee) rgba(eb6f92ee) 45deg"
+    ;;
+  "tokyo-night")
+    # Update Hyprland active border
+    hyprctl keyword general:col.active_border "rgba(7aa2f7ee) rgba(bb9af7ee) 45deg"
+    ;;
+  "catppuccin-mocha")
+    # Update Hyprland active border
+    hyprctl keyword general:col.active_border "rgba(cba6f7ee) rgba(89b4faee) 45deg"
+    ;;
+esac

@@ -199,7 +199,7 @@ PanelWindow {
                         }
 
                         Text {
-                            text: "Bluetooth"
+                            text: I18n.t("bluetooth", "Bluetooth")
                             font.family: "JetBrainsMono Nerd Font"
                             font.pixelSize: 11
                             font.bold: true
@@ -240,7 +240,7 @@ PanelWindow {
                         }
 
                         Text {
-                            text: "DND"
+                            text: I18n.t("dnd", "DND")
                             font.family: "JetBrainsMono Nerd Font"
                             font.pixelSize: 11
                             font.bold: true
@@ -280,7 +280,7 @@ PanelWindow {
                         }
 
                         Text {
-                            text: parent.parent.isMuted ? "Stumm" : "Mikrofon"
+                            text: parent.parent.isMuted ? I18n.t("mic_muted", "Muted") : I18n.t("mic", "Mic")
                             font.family: "JetBrainsMono Nerd Font"
                             font.pixelSize: 11
                             font.bold: true
@@ -298,6 +298,45 @@ PanelWindow {
                                 parent.mic.audio.muted = !parent.mic.audio.muted;
                             }
                         }
+                    }
+                }
+
+                // Theme Toggle Button
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 34
+                    radius: Theme.cornerRadius
+                    color: themeMouse.containsMouse ? Colors.colBlack : Colors.colSurface
+                    border.width: 1
+                    border.color: Theme.borderColor
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 6
+
+                        Text {
+                            text: "󰏘"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13
+                            color: Colors.colPurple
+                        }
+
+                        Text {
+                            text: Colors.currentThemeName
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: Colors.colFg
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    MouseArea {
+                        id: themeMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: Colors.nextTheme()
                     }
                 }
             }

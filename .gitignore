@@ -14,3 +14,7 @@ __pycache__/
 # Scratch and system generated
 scratch/
 .system_generated/
+
+# Local theme state and hook script
+current_theme
+on_theme_change.sh
