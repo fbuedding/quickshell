@@ -92,7 +92,7 @@ PanelWindow {
             bottomMargin: root.isFullscreen ? 12 : 0
             rightMargin: root.isFullscreen ? 12 : 0
         }
-        width: 420
+        width: 460
         color: Colors.colBg
         radius: root.isFullscreen ? 12 : 0
         border.width: root.isFullscreen ? Theme.borderWidth : 0
@@ -171,10 +171,12 @@ PanelWindow {
                 }
             }
 
-            // ── Quick Toggles Row (Bluetooth, DND, Mic Mute) ─────────────────
-            RowLayout {
+            // ── Quick Toggles Grid (Bluetooth, DND, Mic Mute, Theme) ─────────
+            GridLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                columns: 2
+                columnSpacing: 8
+                rowSpacing: 8
 
                 // Bluetooth Toggle Button
                 Rectangle {
