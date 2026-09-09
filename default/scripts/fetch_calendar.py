@@ -3,6 +3,7 @@
 Quickshell Calendar Fetcher
 Fetches and parses iCalendar (.ics) feeds configured in calendars.json.
 Supports secret URL retrieval from FreeDesktop Secret Service / KeePassXC,
+session caching in volatile RAM ($XDG_RUNTIME_DIR, tmpfs),
 local gitignored overrides (calendars.local.json), and disk caching.
 Outputs a clean JSON structure grouped by date (YYYY-MM-DD).
 """
@@ -21,7 +22,39 @@ LOCAL_CONFIG_PATH = os.path.expanduser("~/.config/quickshell/default/calendar/ca
 CACHE_DIR = os.path.expanduser("~/.cache/quickshell/calendar")
 OUTPUT_CACHE = os.path.join(CACHE_DIR, "events.json")
 
+# In-RAM volatile session cache (never written to disk or git, cleared on reboot)
+RUNTIME_DIR = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+SESSION_CACHE_DIR = os.path.join(RUNTIME_DIR, "quickshell")
+SESSION_SECRETS_FILE = os.path.join(SESSION_CACHE_DIR, "calendar_secrets.json")
+
 os.makedirs(CACHE_DIR, exist_ok=True)
+
+def load_session_secrets():
+    """Loads cached secret URLs from volatile RAM (tmpfs) to prevent repeated KeePassXC prompts."""
+    if os.path.exists(SESSION_SECRETS_FILE):
+        try:
+            with open(SESSION_SECRETS_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+        except Exception:
+            pass
+    return {}
+
+def save_session_secrets(secrets):
+    """Saves secret URLs to volatile RAM (tmpfs) with strict 0600 (owner-only) permissions."""
+    try:
+        os.makedirs(SESSION_CACHE_DIR, exist_ok=True)
+        try:
+            os.chmod(SESSION_CACHE_DIR, 0o700)
+        except Exception:
+            pass
+        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        fd = os.open(SESSION_SECRETS_FILE, flags, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(secrets, f, indent=2)
+    except Exception:
+        pass
 
 def lookup_keyring_secret(keyring_spec, cal_name=""):
     """
@@ -181,6 +214,13 @@ def expand_rrule(start_dt, end_dt, rrule_str, is_all_day, win_start, win_end):
     return instances
 
 def main():
+    if "--clear-session-secrets" in sys.argv:
+        if os.path.exists(SESSION_SECRETS_FILE):
+            try:
+                os.remove(SESSION_SECRETS_FILE)
+            except Exception:
+                pass
+
     today = date.today()
     win_start = today - timedelta(days=45)
     win_end = today + timedelta(days=120)
@@ -208,6 +248,10 @@ def main():
         except Exception:
             pass
 
+    # Load in-RAM session cache
+    session_secrets = load_session_secrets()
+    session_secrets_updated = False
+
     events_by_date = {}
     cal_summaries = []
 
@@ -219,14 +263,24 @@ def main():
         cal_id = hashlib.md5(name.encode()).hexdigest()[:8]
 
         # Resolution hierarchy:
-        # 1. Direct URL in calendars.json (e.g. Feiertage)
+        # 1. Direct URL in calendars.json (e.g. public Feiertage)
         # 2. Gitignored local override calendars.local.json
-        # 3. KeePassXC / FreeDesktop Secret Service keyring
+        # 3. In-RAM session cache ($XDG_RUNTIME_DIR/quickshell/calendar_secrets.json)
+        # 4. KeePassXC / FreeDesktop Secret Service (prompts once per session)
         url = cal.get("url", "").strip()
         if not url and name in local_overrides:
             url = local_overrides[name].strip()
-        if not url and cal.get("keyring"):
-            url = lookup_keyring_secret(cal.get("keyring"), name)
+
+        keyring_spec = cal.get("keyring")
+        if not url and keyring_spec:
+            cache_key = str(keyring_spec)
+            if cache_key in session_secrets and session_secrets[cache_key].startswith("http"):
+                url = session_secrets[cache_key]
+            else:
+                url = lookup_keyring_secret(keyring_spec, name)
+                if url:
+                    session_secrets[cache_key] = url
+                    session_secrets_updated = True
 
         cal_event_count = 0
         raw_ics = fetch_feed(url, cal_id)
@@ -309,6 +363,9 @@ def main():
             "hasUrl": bool(url or os.path.exists(os.path.join(CACHE_DIR, f"feed_{cal_id}.ics"))),
             "eventCount": cal_event_count
         })
+
+    if session_secrets_updated:
+        save_session_secrets(session_secrets)
 
     # Sort events on each day: all-day first, then by time
     for d_key in events_by_date:
