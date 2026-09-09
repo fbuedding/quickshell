@@ -19,6 +19,11 @@ Rectangle {
     readonly property bool muted: ready && defaultSink.audio.muted
     readonly property real volume: ready ? defaultSink.audio.volume : 0.0
 
+    property var defaultSource: Pipewire.defaultAudioSource
+    readonly property bool sourceReady: defaultSource && defaultSource.ready && defaultSource.audio
+    readonly property bool sourceMuted: sourceReady && defaultSource.audio.muted
+    readonly property real sourceVolume: sourceReady ? defaultSource.audio.volume : 0.0
+
     // Filter available audio output sinks (exclude monitors and loopbacks)
     readonly property var availableSinks: {
         if (!Pipewire.ready) return [];
@@ -34,7 +39,12 @@ Rectangle {
     }
 
     PwObjectTracker {
-        objects: root.defaultSink ? [root.defaultSink].concat(root.availableSinks) : root.availableSinks
+        objects: {
+            let list = [];
+            if (root.defaultSink) list.push(root.defaultSink);
+            if (root.defaultSource) list.push(root.defaultSource);
+            return list.concat(root.availableSinks);
+        }
     }
 
     function getSinkIcon(node) {
@@ -325,6 +335,174 @@ Rectangle {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: root.selectSink(sinkItem.modelData)
+                    }
+                }
+            }
+        }
+
+        // ── Microphone Divider ───────────────────────────────────────────────
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: 1
+            color: Colors.colHighlight
+            opacity: 0.6
+            visible: root.sourceReady
+        }
+
+        // ── Microphone Header ────────────────────────────────────────────────
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+            visible: root.sourceReady
+
+            Text {
+                text: root.sourceMuted ? "󰍭" : "󰍬"
+                font.family: "JetBrainsMono Nerd Font"
+                font.pixelSize: 17
+                color: root.sourceMuted ? Colors.colRose : Colors.colPine
+                Layout.alignment: Qt.AlignVCenter
+            }
+
+            ColumnLayout {
+                spacing: 1
+                Layout.fillWidth: true
+
+                Text {
+                    text: "Mikrofon-Eingang"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 13
+                    font.bold: true
+                    color: Colors.colFg
+                }
+
+                Text {
+                    text: root.getSinkCleanName(root.defaultSource)
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 10
+                    color: Colors.colSubtle
+                    elide: Text.ElideRight
+                    Layout.fillWidth: true
+                }
+            }
+
+            // Mic Mute Pill Button
+            Rectangle {
+                implicitWidth: 30
+                implicitHeight: 24
+                radius: 12
+                color: root.sourceMuted ? Colors.colRose : (micMuteMouse.containsMouse ? Colors.colBlack : Colors.colHighlight)
+
+                Text {
+                    anchors.centerIn: parent
+                    text: root.sourceMuted ? "󰍭" : "󰍬"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 13
+                    color: root.sourceMuted ? Colors.colBg : Colors.colFg
+                }
+
+                MouseArea {
+                    id: micMuteMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (root.sourceReady) {
+                            root.defaultSource.audio.muted = !root.defaultSource.audio.muted;
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── Interactive Microphone Slider ────────────────────────────────────
+        Rectangle {
+            id: micTrack
+            Layout.fillWidth: true
+            implicitHeight: 26
+            radius: 6
+            color: Colors.colBlack
+            clip: true
+            visible: root.sourceReady
+
+            // Progress Fill
+            Rectangle {
+                id: micFill
+                anchors {
+                    left: parent.left
+                    top: parent.top
+                    bottom: parent.bottom
+                }
+                width: Math.max(0, Math.min(micTrack.width, micTrack.width * (root.sourceReady ? root.defaultSource.audio.volume : 0.0)))
+                radius: 6
+                color: root.sourceMuted ? Colors.colMuted : Colors.colPine
+
+                Behavior on width {
+                    enabled: !micSliderMouse.pressed
+                    NumberAnimation {
+                        duration: 80
+                        easing.type: Easing.OutQuad
+                    }
+                }
+            }
+
+            // Slider Content Overlay
+            RowLayout {
+                anchors {
+                    fill: parent
+                    leftMargin: 10
+                    rightMargin: 10
+                }
+
+                Text {
+                    text: root.sourceMuted ? "󰍭" : "󰍬"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 12
+                    color: (micFill.width > 28 && !root.sourceMuted) ? Colors.colBg : Colors.colFg
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+                Item { Layout.fillWidth: true }
+
+                Text {
+                    text: root.sourceReady ? (root.sourceMuted ? "Stumm" : Math.round(root.defaultSource.audio.volume * 100) + "%") : "--"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 11
+                    font.bold: true
+                    color: (micFill.width > micTrack.width - 45 && !root.sourceMuted) ? Colors.colBg : Colors.colFg
+                    Layout.alignment: Qt.AlignVCenter
+                }
+            }
+
+            // Drag / Click / Scroll Handler
+            MouseArea {
+                id: micSliderMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+
+                function updateMicVolume(mouseX) {
+                    if (!root.sourceReady) return;
+                    let v = Math.max(0.0, Math.min(1.0, mouseX / micTrack.width));
+                    root.defaultSource.audio.volume = v;
+                    if (root.sourceMuted && v > 0) {
+                        root.defaultSource.audio.muted = false;
+                    }
+                }
+
+                onPressed: mouse => updateMicVolume(mouse.x)
+                onPositionChanged: mouse => {
+                    if (pressed) updateMicVolume(mouse.x);
+                }
+
+                onWheel: wheel => {
+                    if (!root.sourceReady) return;
+                    let step = 0.02;
+                    let cur = root.defaultSource.audio.volume;
+                    if (wheel.angleDelta.y > 0) {
+                        root.defaultSource.audio.volume = Math.min(1.0, cur + step);
+                        if (root.sourceMuted) root.defaultSource.audio.muted = false;
+                    } else if (wheel.angleDelta.y < 0) {
+                        root.defaultSource.audio.volume = Math.max(0.0, cur - step);
                     }
                 }
             }

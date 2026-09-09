@@ -1,6 +1,8 @@
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import Quickshell.Bluetooth
+import Quickshell.Services.Pipewire
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
@@ -108,45 +110,6 @@ PanelWindow {
 
                 Item { Layout.fillWidth: true }
 
-                // DND Toggle Button
-                Rectangle {
-                    implicitHeight: 28
-                    implicitWidth: dndRow.implicitWidth + 16
-                    radius: Theme.cornerRadius
-                    color: NotificationState.dnd ? Colors.colRose : (dndMouse.containsMouse ? Colors.colBlack : Colors.colSurface)
-                    border.width: 1
-                    border.color: NotificationState.dnd ? Colors.colRose : Theme.borderColor
-
-                    RowLayout {
-                        id: dndRow
-                        anchors.centerIn: parent
-                        spacing: 6
-
-                        Text {
-                            text: NotificationState.dnd ? "󰂛" : "󰂚"
-                            font.family: "JetBrainsMono Nerd Font"
-                            font.pixelSize: 13
-                            color: NotificationState.dnd ? Colors.colBg : Colors.colFg
-                        }
-
-                        Text {
-                            text: "DND"
-                            font.family: "JetBrainsMono Nerd Font"
-                            font.pixelSize: 11
-                            font.bold: true
-                            color: NotificationState.dnd ? Colors.colBg : Colors.colFg
-                        }
-                    }
-
-                    MouseArea {
-                        id: dndMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: NotificationState.toggleDnd()
-                    }
-                }
-
                 // Clear All Button
                 Rectangle {
                     implicitHeight: 28
@@ -186,6 +149,142 @@ PanelWindow {
                         onClicked: NotificationState.dismissAll()
                     }
                 }
+            }
+
+            // ── Quick Toggles Row (Bluetooth, DND, Mic Mute) ─────────────────
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                // Bluetooth Toggle Button
+                Rectangle {
+                    readonly property var adapter: Bluetooth.defaultAdapter
+                    readonly property bool isOn: adapter && adapter.enabled
+                    Layout.fillWidth: true
+                    implicitHeight: 34
+                    radius: Theme.cornerRadius
+                    color: isOn ? Colors.colHighlight : (btMouse.containsMouse ? Colors.colBlack : Colors.colSurface)
+                    border.width: 1
+                    border.color: isOn ? Colors.colBlue : Theme.borderColor
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 6
+
+                        Text {
+                            text: parent.parent.isOn ? "󰂯" : "󰂲"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13
+                            color: parent.parent.isOn ? Colors.colBlue : Colors.colMuted
+                        }
+
+                        Text {
+                            text: "Bluetooth"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: parent.parent.isOn ? Colors.colFg : Colors.colSubtle
+                        }
+                    }
+
+                    MouseArea {
+                        id: btMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (parent.adapter) parent.adapter.enabled = !parent.adapter.enabled;
+                        }
+                    }
+                }
+
+                // DND Toggle Button
+                Rectangle {
+                    readonly property bool isDnd: NotificationState.dnd
+                    Layout.fillWidth: true
+                    implicitHeight: 34
+                    radius: Theme.cornerRadius
+                    color: isDnd ? Colors.colRose : (dndMouse.containsMouse ? Colors.colBlack : Colors.colSurface)
+                    border.width: 1
+                    border.color: isDnd ? Colors.colRose : Theme.borderColor
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 6
+
+                        Text {
+                            text: parent.parent.isDnd ? "󰂛" : "󰂚"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13
+                            color: parent.parent.isDnd ? Colors.colBg : Colors.colFg
+                        }
+
+                        Text {
+                            text: "DND"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: parent.parent.isDnd ? Colors.colBg : Colors.colFg
+                        }
+                    }
+
+                    MouseArea {
+                        id: dndMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: NotificationState.toggleDnd()
+                    }
+                }
+
+                // Mic Mute Toggle Button
+                Rectangle {
+                    readonly property var mic: Pipewire.defaultAudioSource
+                    readonly property bool isMuted: mic && mic.ready && mic.audio && mic.audio.muted
+                    Layout.fillWidth: true
+                    implicitHeight: 34
+                    radius: Theme.cornerRadius
+                    color: isMuted ? Colors.colRose : (micMouse.containsMouse ? Colors.colBlack : Colors.colSurface)
+                    border.width: 1
+                    border.color: isMuted ? Colors.colRose : Theme.borderColor
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 6
+
+                        Text {
+                            text: parent.parent.isMuted ? "󰍭" : "󰍬"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13
+                            color: parent.parent.isMuted ? Colors.colBg : (parent.parent.mic ? Colors.colPine : Colors.colMuted)
+                        }
+
+                        Text {
+                            text: parent.parent.isMuted ? "Stumm" : "Mikrofon"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: parent.parent.isMuted ? Colors.colBg : Colors.colFg
+                        }
+                    }
+
+                    MouseArea {
+                        id: micMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (parent.mic && parent.mic.ready && parent.mic.audio) {
+                                parent.mic.audio.muted = !parent.mic.audio.muted;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Bluetooth Device Manager Widget ─────────────────────────────
+            BluetoothWidget {
+                Layout.fillWidth: true
             }
 
             // ── Audio Output & Volume Control Widget ────────────────────────

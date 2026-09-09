@@ -319,15 +319,15 @@ Kernelemente für ein geschliffenes Alltags-Desktop-Gefühl, die visuelles Feedb
 ### 🥈 Priorität 2: Ausbau des Kontrollzentrums (Quick Toggles)
 Zusätzliche Schnellzugriffe im oberen Bereich des ausfahrbaren Kontrollzentrums ([`default/notifications/NotificationPanel.qml`](default/notifications/NotificationPanel.qml)):
 
-- [ ] **Bluetooth Quick-Toggle & Gerätemanager**
-  - Adapter an/aus und 1-Klick-Verbindungsaufbau zu gepaarten Audiogeräten (Kopfhörer, Headsets).
-  - Vollständig nativ über `Quickshell.Bluetooth`.
+- [x] **Bluetooth Quick-Toggle & Gerätemanager**
+  - Adapter an/aus per Schnelltaste und 1-Klick-Verbindungsaufbau zu gepaarten Geräten (z. B. Xbox Wireless Controller, Headsets).
+  - Vollständig nativ über `Quickshell.Bluetooth` ([`default/notifications/BluetoothWidget.qml`](default/notifications/BluetoothWidget.qml)).
   - *Ersetzt:* `blueman-applet` / `blueman-manager`.
 - [ ] **Night Light / Blaulichtfilter-Toggle**
   - Schneller Umschalter für wärmere Bildschirm-Farbtemperaturen in den Abendstunden.
   - Anbindung an `hyprsunset` oder `wlsunset`.
-- [ ] **Mikrofon-Stummschaltung (Mic Mute)**
-  - Schnelle optische Statusanzeige und 1-Klick-Stummschaltung des Mikrofons via PipeWire.
+- [x] **Mikrofon-Stummschaltung & Pegelregler (Mic Mute)**
+  - Schnelle optische Statusanzeige, 1-Klick-Stummschaltung und Eingangspegel-Schieberegler via PipeWire direkt im Kontrollzentrum und als Quick-Toggle.
 - [ ] **Netzwerk / WLAN-Statusanzeige**
   - Schnelle Anzeige des aktuellen WLAN-Namens (SSID) bzw. Verbindungsstatus im Header des Panels.
 
