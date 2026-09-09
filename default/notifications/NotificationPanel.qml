@@ -3,7 +3,6 @@ import Quickshell.Wayland
 import Quickshell.Io
 import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
-import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
@@ -15,14 +14,7 @@ PanelWindow {
     id: root
     property var screen
 
-    readonly property bool isFullscreen: {
-        let mon = root.screen ? Hyprland.monitorFor(root.screen) : null;
-        if (mon?.activeWorkspace?.hasFullscreen) return true;
-        if (Hyprland.focusedWorkspace?.hasFullscreen) return true;
-        let top = Hyprland.activeToplevel;
-        if (top?.lastIpcObject && (top.lastIpcObject.fullscreen > 0 || top.lastIpcObject.fullscreen === true)) return true;
-        return false;
-    }
+    readonly property bool isFullscreen: WindowHelper.isFullscreen(root.screen)
 
     IpcHandler {
         target: "notifications"
