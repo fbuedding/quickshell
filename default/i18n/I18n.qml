@@ -102,7 +102,7 @@ QtObject {
     readonly property var locales: ({
         "en": {
             // Time & Date Formats (Qt date/time syntax)
-            "clock_format": "HH:mm",
+            "clock_format": "h:mm AP",
             "date_header_format": "dddd, MMMM d",
             "month_header_format": "MMMM yyyy",
 

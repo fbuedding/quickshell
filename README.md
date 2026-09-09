@@ -224,14 +224,16 @@ To add a new language (e.g. French `fr`, Spanish `es`, Italian `it`):
 4. Translate the string values. Any missing keys automatically fall back to English.
 5. Month names and weekdays format automatically via `Qt.locale()`.
 
-### Customizing Time and Date Formats
-Time and date format strings follow standard Qt date/time syntax (e.g. `HH:mm`, `h:mm AP`, `dddd, MMMM d`):
-- Per language: Adjust `clock_format`, `date_header_format`, or `month_header_format` in `default/i18n/I18n.qml`.
-- Global overrides via environment variables:
-  ```bash
-  QS_CLOCK_FORMAT="h:mm AP" QS_DATE_FORMAT="ddd, MMM d" quickshell -d
-  ```
-- Or set properties directly in `default/i18n/I18n.qml` (e.g. `clockFormatOverride: "HH:mm:ss"`).
+### Time and Date Formats
+Format strings are automatically set by the active language to sensible defaults:
+- **German (`de`):** 24-hour clock (`HH:mm`, e.g. `18:30`), date header with day first (`dddd, d. MMMM`).
+- **English (`en`):** 12-hour clock (`h:mm AP`, e.g. `6:30 PM`), date header with month first (`dddd, MMMM d`).
+
+If desired, formats can be customized per language in `default/i18n/I18n.qml` or overridden globally:
+```bash
+QS_CLOCK_FORMAT="HH:mm:ss" QS_DATE_FORMAT="ddd, MMM d" quickshell -d
+```
+Or directly in `default/i18n/I18n.qml` (`clockFormatOverride: "HH:mm:ss"`).
 
 ---
 
