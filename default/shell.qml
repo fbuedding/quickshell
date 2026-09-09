@@ -4,6 +4,7 @@ import "./app_launcher"
 import "./bar"
 import "./notifications"
 import "./power_menu"
+import "./osd"
 
 ShellRoot {
     Bar {}
@@ -32,6 +33,13 @@ ShellRoot {
     Variants {
 	model: Quickshell.screens
 	NotificationPopup {
+	    property var modelData
+	    screen: modelData
+	}
+    }
+    Variants {
+	model: Quickshell.screens
+	VolumeOsd {
 	    property var modelData
 	    screen: modelData
 	}

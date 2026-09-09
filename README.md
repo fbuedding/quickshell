@@ -35,6 +35,10 @@ Elegantes Desktop-Shell-Setup für **Hyprland** auf Basis von [Quickshell](https
 │   │   ├── AppLauncher.qml      # App-Launcher (unten zentriert, slide-up)
 │   │   ├── AppLauncherState.qml # Singleton-Statusverwaltung
 │   │   └── qmldir               # QML-Modulregistrierung
+│   ├── osd/
+│   │   ├── OsdState.qml         # Singleton-Status & PipeWire-Listener
+│   │   ├── VolumeOsd.qml        # Zentriertes Floating-Pill Overlay (Lautstärke & Mute)
+│   │   └── qmldir               # QML-Modulregistrierung
 │   ├── components/
 │   │   └── ConcaveCurves.qml    # Universelle konkave Kurven-Komponente (ShapePath)
 │   ├── theme/
@@ -128,9 +132,17 @@ Elegantes Desktop-Shell-Setup für **Hyprland** auf Basis von [Quickshell](https
   - Hyprland-Keybind: `SUPER + I`
   - IPC: `qs ipc call notifications toggle`
 
+### 6. Lautstärke- & Mute-OSD (`default/osd/VolumeOsd.qml`)
+- **Overlay:** Zentriertes, elegantes Floating-Pill am unteren Bildschirmrand (`WlrLayer.Overlay`).
+- **Reaktiv:** Reagiert automatisch via `Quickshell.Services.Pipewire` auf jegliche Lautstärke- & Stummschalt-Änderungen (`wpctl`, Tastatur-Hotkeys, Mausrad an der Bar).
+- **100% Klickdurchlässig:** `mask: Region { item: null }` und `exclusionMode: ExclusionMode.Ignore` verhindern jede Blockierung von Fenstern oder Klicks.
+- **Visuals:** Dynamisches Nerd-Font-Icon (Mute, Low, Med, High), animierter Pegelbalken (Foam-Blau oder Love-Rot bei Mute) und Prozentanzeige in JetBrainsMono Nerd Font.
+- **Sanftes Ausblenden:** Fadet nach 1,5s Inaktivität mit sanfter Opazitäts- und Skalierungsanimation aus.
+- **IPC:** `qs ipc call osd show` / `qs ipc call osd hide`
+
 ---
 
-### 6. Bildschirmränder & Konkave Innenecken (`default/Border.qml`)
+### 7. Bildschirmränder & Konkave Innenecken (`default/Border.qml`)
 - **Ränder:** 12px dicke Balken unten, links und rechts (`WlrLayer.Top`). Oben fungiert die TopBar als Begrenzung.
 - **Innenecken:** Ein vollkommen klickdurchlässiges Overlay (`quickshell-corners`) spannt die 4 konkaven Übergänge auf:
   - Oben links, oben rechts, unten links, unten rechts.
@@ -138,7 +150,7 @@ Elegantes Desktop-Shell-Setup für **Hyprland** auf Basis von [Quickshell](https
 
 ---
 
-### 7. Design & Metriken (`default/theme/`)
+### 8. Design & Metriken (`default/theme/`)
 
 #### [`Theme.qml`](default/theme/Theme.qml)
 Zentraler Singleton für konsistente Maße, synchronisiert mit Hyprland:
@@ -253,10 +265,10 @@ Geordnet nach Auswirkungs- und Umsetzungspriorität:
 ### 🥇 Priorität 1: Direktes Desktop-Feintuning (High Impact / Quick Wins)
 Kernelemente für ein geschliffenes Alltags-Desktop-Gefühl, die visuelles Feedback geben und bestehende Workflows vereinfachen:
 
-- [ ] **Visuelles OSD (On-Screen Display für Lautstärke & Helligkeit)**
-  - Zentriertes, dezentes Floating-Pill-Overlay auf dem Bildschirm.
-  - Reagiert sofort auf Tasten wie `XF86AudioRaiseVolume`, `XF86AudioLowerVolume`, `XF86AudioMute` und Helligkeitstasten.
-  - Zeigt Pegel-Balken, Prozentwert und dynamisches Icon an; fadet nach 1,5s weich aus.
+- [x] **Visuelles OSD (On-Screen Display für Lautstärke & Mute)**
+  - Zentriertes, elegantes Floating-Pill-Overlay (Desktop-PC ohne Display-Helligkeit).
+  - Reagiert sofort auf Tasten wie `XF86AudioRaiseVolume`, `XF86AudioLowerVolume`, `XF86AudioMute` und Mausrad-Pegeländerungen.
+  - Zeigt Pegel-Balken, Prozentwert und dynamisches Audio-Icon an; fadet nach 1,5s weich aus.
   - *Ersetzt:* `swayosd`, `avizo`, `wob`.
 - [ ] **Interaktiver Monatskalender bei Klick auf die Uhr**
   - Klick auf die Uhrzeit in der TopBar ([`default/bar/Clock.qml`](default/bar/Clock.qml)) öffnet ein Dropdown-Panel.
