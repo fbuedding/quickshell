@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Shapes
 import "../theme"
@@ -9,6 +10,15 @@ import "../components"
 PanelWindow {
     id: root
     property var screen
+
+    readonly property bool isFullscreen: {
+        let mon = root.screen ? Hyprland.monitorFor(root.screen) : null;
+        if (mon?.activeWorkspace?.hasFullscreen) return true;
+        if (Hyprland.focusedWorkspace?.hasFullscreen) return true;
+        let top = Hyprland.activeToplevel;
+        if (top?.lastIpcObject && (top.lastIpcObject.fullscreen > 0 || top.lastIpcObject.fullscreen === true)) return true;
+        return false;
+    }
 
     IpcHandler {
         target: "applauncher"
@@ -20,6 +30,8 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: AppLauncherState.launcherVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     WlrLayershell.namespace: "quickshell-launcher"
+
+    exclusionMode: root.isFullscreen ? ExclusionMode.Ignore : ExclusionMode.Normal
 
     anchors {
         top: true
@@ -121,7 +133,7 @@ PanelWindow {
     readonly property int cornerRadius: Theme.cornerRadius
 
     // Shared slide offset — drives the panel AND the two corner pieces in sync
-    property real slideY: AppLauncherState.launcherVisible ? 0 : panelH + 6
+    property real slideY: AppLauncherState.launcherVisible ? 0 : (panelH + panel.anchors.bottomMargin + 10)
     Behavior on slideY {
         NumberAnimation {
             duration: 500
@@ -153,13 +165,16 @@ PanelWindow {
 
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: root.isFullscreen ? 12 : 0
 
-        // Semi-translucent frosted panel
+        // Semi-translucent frosted panel in normal mode or rounded card in fullscreen mode
         color: Colors.colBg
-        topLeftRadius: root.cornerRadius
-        topRightRadius: root.cornerRadius
-        bottomLeftRadius: 0
-        bottomRightRadius: 0
+        topLeftRadius: root.isFullscreen ? 12 : root.cornerRadius
+        topRightRadius: root.isFullscreen ? 12 : root.cornerRadius
+        bottomLeftRadius: root.isFullscreen ? 12 : 0
+        bottomRightRadius: root.isFullscreen ? 12 : 0
+        border.width: root.isFullscreen ? Theme.borderWidth : 0
+        border.color: Theme.borderColor
 
         // Slide up / down
         transform: Translate { y: root.slideY }
@@ -477,6 +492,7 @@ PanelWindow {
         anchors.right: panel.left
         anchors.bottom: panel.bottom
         transform: Translate { y: root.slideY }
+        visible: !root.isFullscreen
     }
 
     ConcaveCurves {
@@ -489,6 +505,7 @@ PanelWindow {
         anchors.left: panel.right
         anchors.bottom: panel.bottom
         transform: Translate { y: root.slideY }
+        visible: !root.isFullscreen
     }
 
     // ── Panel border contour (left edge, top-left corner, top edge, top-right corner, right edge)
@@ -496,6 +513,7 @@ PanelWindow {
         anchors.fill: panel
         transform: Translate { y: root.slideY }
         preferredRendererType: Shape.CurveRenderer
+        visible: !root.isFullscreen
 
         ShapePath {
             fillColor: "transparent"

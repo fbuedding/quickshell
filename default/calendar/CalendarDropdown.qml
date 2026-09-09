@@ -4,12 +4,22 @@ import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import Quickshell.Hyprland
 import "../theme"
 import "../components"
 
 PanelWindow {
     id: root
     property var screen
+
+    readonly property bool isFullscreen: {
+        let mon = root.screen ? Hyprland.monitorFor(root.screen) : null;
+        if (mon?.activeWorkspace?.hasFullscreen) return true;
+        if (Hyprland.focusedWorkspace?.hasFullscreen) return true;
+        let top = Hyprland.activeToplevel;
+        if (top?.lastIpcObject && (top.lastIpcObject.fullscreen > 0 || top.lastIpcObject.fullscreen === true)) return true;
+        return false;
+    }
 
     IpcHandler {
         target: "calendar"
@@ -24,6 +34,8 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: CalendarState.dropdownVisible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     WlrLayershell.namespace: "quickshell-calendar"
+
+    exclusionMode: root.isFullscreen ? ExclusionMode.Ignore : ExclusionMode.Normal
 
     anchors {
         top: true
@@ -62,24 +74,27 @@ PanelWindow {
         id: panel
         anchors {
             top: parent.top
-            topMargin: 0
+            topMargin: root.isFullscreen ? 12 : 0
             right: parent.right
-            rightMargin: 0
+            rightMargin: root.isFullscreen ? 12 : 0
         }
         width: 390
         height: contentCol.implicitHeight + 24
 
-        // Seamless connection with topbar and right screen edge
+        // Seamless connection with topbar and right screen edge in normal mode,
+        // or fully rounded floating card in fullscreen mode
         color: Colors.colBg
-        topRightRadius: 0
-        topLeftRadius: 0
-        bottomRightRadius: 0
-        bottomLeftRadius: Theme.cornerRadius
+        topRightRadius: root.isFullscreen ? 12 : 0
+        topLeftRadius: root.isFullscreen ? 12 : 0
+        bottomRightRadius: root.isFullscreen ? 12 : 0
+        bottomLeftRadius: root.isFullscreen ? 12 : Theme.cornerRadius
+        border.width: root.isFullscreen ? Theme.borderWidth : 0
+        border.color: Theme.borderColor
 
         clip: true
 
         // Slide from right to left (mirrored to PowerMenu)
-        property real slideX: CalendarState.dropdownVisible ? 0 : (width + Theme.cornerRadius + 4)
+        property real slideX: CalendarState.dropdownVisible ? 0 : (width + anchors.rightMargin + Theme.cornerRadius + 10)
         Behavior on slideX {
             NumberAnimation {
                 duration: 250
@@ -602,6 +617,7 @@ PanelWindow {
         anchors.top: panel.top
         anchors.right: panel.left
         transform: Translate { x: panel.slideX }
+        visible: !root.isFullscreen
     }
 
     // ── Bottom-right concave curve — seamless connection with right border ───
@@ -617,6 +633,7 @@ PanelWindow {
         anchors.top: panel.bottom
         anchors.right: panel.right
         transform: Translate { x: panel.slideX }
+        visible: !root.isFullscreen
     }
 
     // ── Panel border contour (left edge, rounded bottom-left, bottom edge) ───
@@ -624,6 +641,7 @@ PanelWindow {
         anchors.fill: panel
         transform: Translate { x: panel.slideX }
         preferredRendererType: Shape.CurveRenderer
+        visible: !root.isFullscreen
 
         ShapePath {
             fillColor: "transparent"

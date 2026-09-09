@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
@@ -10,6 +11,15 @@ import "../components"
 PanelWindow {
     id: root
     property var screen
+
+    readonly property bool isFullscreen: {
+        let mon = root.screen ? Hyprland.monitorFor(root.screen) : null;
+        if (mon?.activeWorkspace?.hasFullscreen) return true;
+        if (Hyprland.focusedWorkspace?.hasFullscreen) return true;
+        let top = Hyprland.activeToplevel;
+        if (top?.lastIpcObject && (top.lastIpcObject.fullscreen > 0 || top.lastIpcObject.fullscreen === true)) return true;
+        return false;
+    }
 
     IpcHandler {
         target: "powermenu"
@@ -21,6 +31,8 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: PowerMenuState.menuVisible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     WlrLayershell.namespace: "quickshell-powermenu"
+
+    exclusionMode: root.isFullscreen ? ExclusionMode.Ignore : ExclusionMode.Normal
 
     anchors {
         top: true
@@ -59,25 +71,27 @@ PanelWindow {
         id: panel
         anchors {
             top: parent.top
-            topMargin: 0
+            topMargin: root.isFullscreen ? 12 : 0
             left: parent.left
-            leftMargin: 0
+            leftMargin: root.isFullscreen ? 12 : 0
         }
         width: 220
         height: contentCol.implicitHeight + 20
 
-        // Seamless connection with topbar and screen edge:
-        // Top-left and Top-right MUST have no rounded corners
+        // Seamless connection with topbar and screen edge in normal mode,
+        // or fully rounded floating card in fullscreen mode
         color: Colors.colBg
-        topLeftRadius: 0
-        topRightRadius: 0
-        bottomLeftRadius: 0
-        bottomRightRadius: Theme.cornerRadius
+        topLeftRadius: root.isFullscreen ? 12 : 0
+        topRightRadius: root.isFullscreen ? 12 : 0
+        bottomLeftRadius: root.isFullscreen ? 12 : 0
+        bottomRightRadius: root.isFullscreen ? 12 : Theme.cornerRadius
+        border.width: root.isFullscreen ? Theme.borderWidth : 0
+        border.color: Theme.borderColor
 
         clip: true
 
         // Slide from left to right
-        property real slideX: PowerMenuState.menuVisible ? 0 : -(width + Theme.cornerRadius + 2)
+        property real slideX: PowerMenuState.menuVisible ? 0 : -(width + anchors.leftMargin + Theme.cornerRadius + 10)
         Behavior on slideX {
             NumberAnimation {
                 duration: 250
@@ -209,6 +223,7 @@ PanelWindow {
         anchors.top: panel.bottom
         anchors.left: panel.left
         transform: Translate { x: panel.slideX }
+        visible: !root.isFullscreen
     }
 
     // ── Top-right concave curve — seamless connection with topbar
@@ -222,6 +237,7 @@ PanelWindow {
         anchors.top: panel.top
         anchors.left: panel.right
         transform: Translate { x: panel.slideX }
+        visible: !root.isFullscreen
     }
 
     // ── Panel border contour (right edge, rounded bottom-right, bottom edge)
@@ -229,6 +245,7 @@ PanelWindow {
         anchors.fill: panel
         transform: Translate { x: panel.slideX }
         preferredRendererType: Shape.CurveRenderer
+        visible: !root.isFullscreen
 
         ShapePath {
             fillColor: "transparent"
