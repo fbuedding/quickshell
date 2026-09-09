@@ -1,9 +1,11 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
 import "../theme"
+import "../components"
 
 PanelWindow {
     id: root
@@ -55,36 +57,38 @@ PanelWindow {
         Keys.onEscapePressed: CalendarState.hide()
     }
 
-    // ── Dropdown Card ────────────────────────────────────────────────────────
+    // ── Morphing Side Panel ──────────────────────────────────────────────────
     Rectangle {
-        id: card
+        id: panel
         anchors {
             top: parent.top
-            topMargin: Theme.barHeight + 6
+            topMargin: 0
             right: parent.right
-            rightMargin: 16
+            rightMargin: 0
         }
-        width: 380
-        height: contentCol.implicitHeight + 28
-        radius: Theme.cornerRadius + 4
-        color: Colors.colSurface
-        border.width: Theme.borderWidth
-        border.color: Theme.borderColor
+        width: 390
+        height: contentCol.implicitHeight + 24
+
+        // Seamless connection with topbar and right screen edge
+        color: Colors.colBg
+        topRightRadius: 0
+        topLeftRadius: 0
+        bottomRightRadius: 0
+        bottomLeftRadius: Theme.cornerRadius
+
         clip: true
 
-        opacity: CalendarState.dropdownVisible ? 1.0 : 0.0
-        transform: Translate {
-            y: CalendarState.dropdownVisible ? 0 : -8
+        // Slide from right to left (mirrored to PowerMenu)
+        property real slideX: CalendarState.dropdownVisible ? 0 : (width + Theme.cornerRadius + 4)
+        Behavior on slideX {
+            NumberAnimation {
+                duration: 250
+                easing.type: Easing.OutCubic
+            }
         }
+        transform: Translate { x: panel.slideX }
 
-        Behavior on opacity {
-            NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
-        }
-        Behavior on transform {
-            NumberAnimation { property: "y"; duration: 180; easing.type: Easing.OutCubic }
-        }
-
-        // Prevent clicks inside card from closing dropdown
+        // Prevent clicks inside panel from closing dropdown
         MouseArea {
             anchors.fill: parent
         }
@@ -93,7 +97,7 @@ PanelWindow {
             id: contentCol
             anchors {
                 top: parent.top
-                topMargin: 14
+                topMargin: 12
                 left: parent.left
                 leftMargin: 16
                 right: parent.right
@@ -454,9 +458,9 @@ PanelWindow {
                             Layout.fillWidth: true
                             implicitHeight: evRow.implicitHeight + 12
                             radius: 6
-                            color: Colors.colBlack
+                            color: Colors.colSurface
                             border.width: 1
-                            border.color: Colors.colHighlight
+                            border.color: Theme.borderColor
 
                             RowLayout {
                                 id: evRow
@@ -499,7 +503,7 @@ PanelWindow {
                                             implicitHeight: 16
                                             implicitWidth: calBadge.implicitWidth + 8
                                             radius: 4
-                                            color: Qt.rgba(0, 0, 0, 0.25)
+                                            color: Colors.colBlack
 
                                             Text {
                                                 id: calBadge
@@ -581,6 +585,73 @@ PanelWindow {
                     color: Colors.colSubtle
                     Layout.alignment: Qt.AlignVCenter
                 }
+            }
+        }
+    }
+
+    // ── Top-left concave curve — seamless connection with topbar ─────────────
+    ConcaveCurves {
+        width: Theme.cornerRadius
+        height: Theme.cornerRadius
+        radius: Theme.cornerRadius
+        color: Colors.colBg
+        isTop: true
+        mirrored: true
+        borderWidth: Theme.borderWidth
+        borderColor: Theme.borderColor
+        anchors.top: panel.top
+        anchors.right: panel.left
+        transform: Translate { x: panel.slideX }
+    }
+
+    // ── Bottom-right concave curve — seamless connection with right border ───
+    ConcaveCurves {
+        width: Theme.cornerRadius
+        height: Theme.cornerRadius
+        radius: Theme.cornerRadius
+        color: Colors.colBg
+        isTop: true
+        mirrored: true
+        borderWidth: Theme.borderWidth
+        borderColor: Theme.borderColor
+        anchors.top: panel.bottom
+        anchors.right: panel.right
+        transform: Translate { x: panel.slideX }
+    }
+
+    // ── Panel border contour (left edge, rounded bottom-left, bottom edge) ───
+    Shape {
+        anchors.fill: panel
+        transform: Translate { x: panel.slideX }
+        preferredRendererType: Shape.CurveRenderer
+
+        ShapePath {
+            fillColor: "transparent"
+            strokeColor: Theme.borderColor
+            strokeWidth: Theme.borderWidth
+
+            startX: 0
+            startY: Theme.cornerRadius
+
+            // Down left edge
+            PathLine {
+                x: 0
+                y: panel.height - Theme.cornerRadius
+            }
+
+            // Bottom-left corner
+            PathArc {
+                x: Theme.cornerRadius
+                y: panel.height
+                radiusX: Theme.cornerRadius
+                radiusY: Theme.cornerRadius
+                direction: PathArc.Counterclockwise
+            }
+
+            // Across bottom edge
+            PathLine {
+                x: panel.width - Theme.cornerRadius
+                y: panel.height
             }
         }
     }
