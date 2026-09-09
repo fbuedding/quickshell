@@ -79,8 +79,8 @@ PanelWindow {
             right: parent.right
             rightMargin: root.isFullscreen ? 12 : 0
         }
-        width: 390
-        height: contentCol.implicitHeight + 24
+        width: 430
+        height: contentCol.implicitHeight + 28
 
         // Seamless connection with topbar and right screen edge in normal mode,
         // or fully rounded floating card in fullscreen mode
@@ -560,20 +560,23 @@ PanelWindow {
             }
 
             // ── Footer / Calendar Legend ─────────────────────────────────────
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
                 Layout.topMargin: 2
-                spacing: 8
+                spacing: 6
 
-                Row {
-                    spacing: 6
-                    Layout.alignment: Qt.AlignVCenter
+                Flow {
+                    Layout.fillWidth: true
+                    width: contentCol.width
+                    spacing: 10
+
                     Repeater {
                         model: CalendarState.calendars
                         delegate: Row {
                             required property var modelData
                             spacing: 4
                             visible: Boolean(modelData && (modelData.hasUrl || modelData.name === "Feiertage"))
+
                             Rectangle {
                                 width: 6
                                 height: 6
@@ -584,7 +587,7 @@ PanelWindow {
                             Text {
                                 text: modelData.name
                                 font.family: "JetBrainsMono Nerd Font"
-                                font.pixelSize: 9
+                                font.pixelSize: 10
                                 color: Colors.colMuted
                                 anchors.verticalCenter: parent.verticalCenter
                             }
@@ -592,14 +595,18 @@ PanelWindow {
                     }
                 }
 
-                Item { Layout.fillWidth: true }
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: CalendarState.lastUpdated !== ""
 
-                Text {
-                    text: CalendarState.lastUpdated ? ("Stand: " + CalendarState.lastUpdated.split(" ")[1]) : ""
-                    font.family: "JetBrainsMono Nerd Font"
-                    font.pixelSize: 9
-                    color: Colors.colSubtle
-                    Layout.alignment: Qt.AlignVCenter
+                    Item { Layout.fillWidth: true }
+
+                    Text {
+                        text: CalendarState.lastUpdated ? ("Stand: " + CalendarState.lastUpdated.split(" ")[1]) : ""
+                        font.family: "JetBrainsMono Nerd Font"
+                        font.pixelSize: 9
+                        color: Colors.colSubtle
+                    }
                 }
             }
         }
