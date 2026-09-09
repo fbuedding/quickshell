@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Widgets
 import Quickshell.Services.SystemTray
 import "../theme"
+import "../tray"
 
 RowLayout {
     id: root
@@ -25,7 +26,7 @@ RowLayout {
             implicitWidth: 26
             implicitHeight: 26
             radius: Theme.cornerRadius
-            color: mouseArea.containsMouse ? Colors.colBlack : "transparent"
+            color: (mouseArea.containsMouse || (TrayMenuState.visible && TrayMenuState.menuHandle === modelData.menu)) ? Colors.colBlack : "transparent"
             Layout.alignment: Qt.AlignVCenter
 
             readonly property string iconSource: {
@@ -43,14 +44,6 @@ RowLayout {
                 source: itemRect.iconSource
             }
 
-            QsMenuAnchor {
-                id: menuAnchor
-                menu: modelData.menu
-                anchor.window: root.barWindow || itemRect.Window.window
-                anchor.item: itemRect
-                anchor.edges: Edges.Bottom
-            }
-
             MouseArea {
                 id: mouseArea
                 anchors.fill: parent
@@ -59,15 +52,25 @@ RowLayout {
                 cursorShape: Qt.PointingHandCursor
 
                 onClicked: mouse => {
-                    if (mouse.button === Qt.RightButton) {
+                    if (mouse.button === Qt.RightButton || (mouse.button === Qt.LeftButton && modelData.onlyMenu)) {
                         if (modelData.hasMenu && modelData.menu) {
-                            menuAnchor.open();
+                            let pos = itemRect.mapToItem(null, 0, 0);
+                            TrayMenuState.openMenu(
+                                modelData.menu,
+                                pos.x,
+                                itemRect.width,
+                                root.barWindow ? root.barWindow.screen : itemRect.Window.window?.screen,
+                                modelData.title || modelData.id
+                            );
                         } else {
+                            TrayMenuState.hide();
                             modelData.display(root.barWindow || itemRect.Window.window, mouse.x, mouse.y);
                         }
                     } else if (mouse.button === Qt.LeftButton) {
+                        TrayMenuState.hide();
                         modelData.activate();
                     } else if (mouse.button === Qt.MiddleButton) {
+                        TrayMenuState.hide();
                         modelData.secondaryActivate();
                     }
                 }

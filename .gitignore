@@ -1,8 +1,9 @@
 # Local calendar secrets and config overrides
+default/calendar/calendars.json
+default/calendar/calendars.local.json
 *.local.json
 *secrets*
 *.secret*
-default/calendar/calendars.local.json
 
 # Cache and temporary data
 .cache/

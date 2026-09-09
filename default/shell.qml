@@ -7,10 +7,18 @@ import "./calendar"
 import "./notifications"
 import "./power_menu"
 import "./osd"
+import "./tray"
 
 ShellRoot {
     Bar {}
     Border {}
+    Variants {
+	model: Quickshell.screens
+	TrayMenu {
+	    property var modelData
+	    screen: modelData
+	}
+    }
     Variants {
 	model: Quickshell.screens
 	AppLauncher {

@@ -18,6 +18,7 @@ import subprocess
 from datetime import datetime, date, time, timedelta, timezone
 
 CONFIG_PATH = os.path.expanduser("~/.config/quickshell/default/calendar/calendars.json")
+EXAMPLE_CONFIG_PATH = os.path.expanduser("~/.config/quickshell/default/calendar/calendars.example.json")
 LOCAL_CONFIG_PATH = os.path.expanduser("~/.config/quickshell/default/calendar/calendars.local.json")
 CACHE_DIR = os.path.expanduser("~/.cache/quickshell/calendar")
 OUTPUT_CACHE = os.path.join(CACHE_DIR, "events.json")
@@ -226,9 +227,10 @@ def main():
     win_end = today + timedelta(days=120)
 
     calendars = []
-    if os.path.exists(CONFIG_PATH):
+    config_file = CONFIG_PATH if os.path.exists(CONFIG_PATH) else EXAMPLE_CONFIG_PATH
+    if os.path.exists(config_file):
         try:
-            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+            with open(config_file, "r", encoding="utf-8") as f:
                 calendars = json.load(f)
         except Exception as e:
             print(f"Error loading config: {e}", file=sys.stderr)

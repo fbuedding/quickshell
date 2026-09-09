@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../theme"
 import "../power_menu"
+import "../tray"
 
 PanelWindow {
     id: barWindow
@@ -24,12 +25,15 @@ PanelWindow {
     Item {
         anchors.fill: parent
 
-        // Click outside (on empty bar area) to close power menu
+        // Click outside (on empty bar area) to close power menu or tray menu
         MouseArea {
             anchors.fill: parent
             z: -1
-            enabled: PowerMenuState.menuVisible
-            onClicked: PowerMenuState.hide()
+            enabled: PowerMenuState.menuVisible || TrayMenuState.visible
+            onClicked: {
+                PowerMenuState.hide();
+                TrayMenuState.hide();
+            }
         }
 
         // Left Section: CachyOS Symbol (App Launcher)
