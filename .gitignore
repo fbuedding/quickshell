@@ -1,0 +1,15 @@
+# Local calendar secrets and config overrides
+*.local.json
+*secrets*
+*.secret*
+default/calendar/calendars.local.json
+
+# Cache and temporary data
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# Scratch and system generated
+scratch/
+.system_generated/

@@ -159,8 +159,9 @@ Elegantes Desktop-Shell-Setup für **Hyprland** auf Basis von [Quickshell](https
 - **Termine & Feiertage (Google Calendar / iCal Feed):**
   - Tage mit anstehenden Terminen tragen farbige Indikator-Punkte.
   - Klick auf einen Tag filtert die Termin-Agenda darunter: zeigt Startzeit, Titel, Kalenderquelle und Farbakzent.
+  - **KeePassXC Keyring-Integration (100% sicher für Git):** Private iCal-URLs müssen **nicht** im Klartext in Git-Dateien stehen! Der Daemon fragt sie automatisch über den FreeDesktop Secret Service (`secret-tool`) aus KeePassXC ab (`"keyring": "google-calendar-..."`).
   - **Hintergrund-Daemon ([`fetch_calendar.py`](default/scripts/fetch_calendar.py)):** Parse `.ics`-Feeds direkt via Python ohne Abhängigkeit von Thunderbird, cacht Termine lokal in `~/.cache/quickshell/calendar/`.
-  - **Konfiguration ([`calendars.json`](default/calendar/calendars.json)):** Einfaches Hinzufügen privater Google-Calendar-iCal-URLs mit benutzerdefinierten Farben. Out-of-the-Box mit deutschen Feiertagen vorkonfiguriert.
+  - **Konfiguration ([`calendars.json`](default/calendar/calendars.json)):** Name, Farbe und Keyring-Schlüssel. Unterstützt alternativ auch git-ignorierte lokale Overrides (`calendars.local.json`).
   - **Thunderbird-Shortcut:** Schneller 1-Klick-Start von Thunderbird über den Header-Button.
 - **Shortcuts & IPC:**
   - Klick auf Uhrzeit in der TopBar ([`default/bar/Clock.qml`](default/bar/Clock.qml))

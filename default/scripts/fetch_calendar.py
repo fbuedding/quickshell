@@ -2,6 +2,8 @@
 """
 Quickshell Calendar Fetcher
 Fetches and parses iCalendar (.ics) feeds configured in calendars.json.
+Supports secret URL retrieval from FreeDesktop Secret Service / KeePassXC,
+local gitignored overrides (calendars.local.json), and disk caching.
 Outputs a clean JSON structure grouped by date (YYYY-MM-DD).
 """
 
@@ -11,13 +13,53 @@ import re
 import json
 import urllib.request
 import hashlib
+import subprocess
 from datetime import datetime, date, time, timedelta, timezone
 
 CONFIG_PATH = os.path.expanduser("~/.config/quickshell/default/calendar/calendars.json")
+LOCAL_CONFIG_PATH = os.path.expanduser("~/.config/quickshell/default/calendar/calendars.local.json")
 CACHE_DIR = os.path.expanduser("~/.cache/quickshell/calendar")
 OUTPUT_CACHE = os.path.join(CACHE_DIR, "events.json")
 
 os.makedirs(CACHE_DIR, exist_ok=True)
+
+def lookup_keyring_secret(keyring_spec, cal_name=""):
+    """
+    Looks up a secret URL from FreeDesktop Secret Service (KeePassXC) via secret-tool.
+    Supports string shorthand (matching Title or service/calendar attributes)
+    or a dictionary of exact key-value attributes.
+    """
+    if not keyring_spec:
+        return ""
+
+    candidates = []
+    if isinstance(keyring_spec, dict):
+        args = []
+        for k, v in keyring_spec.items():
+            args.extend([str(k), str(v)])
+        candidates.append(args)
+    elif isinstance(keyring_spec, str):
+        # 1. Match KeePassXC entry Title
+        candidates.append(["Title", keyring_spec])
+        candidates.append(["title", keyring_spec])
+        # 2. Match service/calendar attributes
+        candidates.append(["service", "quickshell-calendar", "calendar", keyring_spec])
+        candidates.append(["service", "quickshell-calendar", "name", keyring_spec])
+        if cal_name and cal_name != keyring_spec:
+            candidates.append(["service", "quickshell-calendar", "calendar", cal_name])
+
+    for args in candidates:
+        try:
+            cmd = ["secret-tool", "lookup"] + args
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=3.5)
+            if res.returncode == 0 and res.stdout.strip():
+                val = res.stdout.strip()
+                if val.startswith("http"):
+                    return val
+        except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
+            pass
+
+    return ""
 
 def parse_ics_datetime(val, params=""):
     """Parses an iCalendar DTSTART/DTEND string into (date_str, time_str, is_all_day, datetime_obj)."""
@@ -51,25 +93,27 @@ def parse_ics_datetime(val, params=""):
         return None, None, False, None
 
 def fetch_feed(url, cal_id):
-    """Fetches feed from URL with caching."""
+    """Fetches feed from URL with caching and offline fallback."""
     cache_file = os.path.join(CACHE_DIR, f"feed_{cal_id}.ics")
-    if not url or not url.startswith("http"):
-        return ""
-
     content = ""
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Quickshell-Calendar/1.0"})
-        with urllib.request.urlopen(req, timeout=6) as resp:
-            content = resp.read().decode("utf-8", errors="replace")
-        with open(cache_file, "w", encoding="utf-8") as f:
-            f.write(content)
-    except Exception as e:
-        if os.path.exists(cache_file):
-            try:
-                with open(cache_file, "r", encoding="utf-8") as f:
-                    content = f.read()
-            except Exception:
-                pass
+    if url and url.startswith("http"):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Quickshell-Calendar/1.0"})
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                content = resp.read().decode("utf-8", errors="replace")
+            with open(cache_file, "w", encoding="utf-8") as f:
+                f.write(content)
+        except Exception:
+            pass
+
+    # Fallback to local cache if network or secret lookup failed
+    if not content and os.path.exists(cache_file):
+        try:
+            with open(cache_file, "r", encoding="utf-8") as f:
+                content = f.read()
+        except Exception:
+            pass
+
     return content
 
 def expand_rrule(start_dt, end_dt, rrule_str, is_all_day, win_start, win_end):
@@ -92,7 +136,6 @@ def expand_rrule(start_dt, end_dt, rrule_str, is_all_day, win_start, win_end):
     cur = start_dt
 
     if freq == "YEARLY":
-        # Project for each year in the window
         for y in range(win_start.year - 1, win_end.year + 2):
             try:
                 inst_start = cur.replace(year=y)
@@ -102,22 +145,20 @@ def expand_rrule(start_dt, end_dt, rrule_str, is_all_day, win_start, win_end):
                 if win_start <= inst_start.date() <= win_end:
                     instances.append((inst_start, inst_end))
             except ValueError:
-                pass # Leap year Feb 29
+                pass
     elif freq == "MONTHLY":
-        # Step through months
+        interval = int(rule_parts.get("INTERVAL", 1))
         m_dt = start_dt
         while m_dt.date() <= win_end:
             if until_dt and m_dt > until_dt:
                 break
             if win_start <= m_dt.date() <= win_end:
                 instances.append((m_dt, m_dt + duration))
-            # Advance ~1 month
-            month = m_dt.month % 12 + 1
-            year = m_dt.year + (1 if m_dt.month == 12 else 0)
-            try:
-                m_dt = m_dt.replace(year=year, month=month)
-            except ValueError:
-                m_dt = m_dt + timedelta(days=30)
+            month = m_dt.month - 1 + interval
+            year = m_dt.year + month // 12
+            month = month % 12 + 1
+            day = min(m_dt.day, 28)
+            m_dt = m_dt.replace(year=year, month=month, day=day)
     elif freq == "WEEKLY":
         interval = int(rule_parts.get("INTERVAL", 1))
         w_dt = start_dt
@@ -152,6 +193,21 @@ def main():
         except Exception as e:
             print(f"Error loading config: {e}", file=sys.stderr)
 
+    # Load optional gitignored local overrides
+    local_overrides = {}
+    if os.path.exists(LOCAL_CONFIG_PATH):
+        try:
+            with open(LOCAL_CONFIG_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    local_overrides = data
+                elif isinstance(data, list):
+                    for item in data:
+                        if "name" in item and "url" in item:
+                            local_overrides[item["name"]] = item["url"]
+        except Exception:
+            pass
+
     events_by_date = {}
     cal_summaries = []
 
@@ -159,89 +215,98 @@ def main():
         if not cal.get("enabled", True):
             continue
         name = cal.get("name", f"Calendar {idx+1}")
-        url = cal.get("url", "").strip()
         color = cal.get("color", "#9ccfd8")
-        cal_id = hashlib.md5(f"{name}_{url}".encode()).hexdigest()[:8]
+        cal_id = hashlib.md5(name.encode()).hexdigest()[:8]
+
+        # Resolution hierarchy:
+        # 1. Direct URL in calendars.json (e.g. Feiertage)
+        # 2. Gitignored local override calendars.local.json
+        # 3. KeePassXC / FreeDesktop Secret Service keyring
+        url = cal.get("url", "").strip()
+        if not url and name in local_overrides:
+            url = local_overrides[name].strip()
+        if not url and cal.get("keyring"):
+            url = lookup_keyring_secret(cal.get("keyring"), name)
 
         cal_event_count = 0
-        if url:
-            raw_ics = fetch_feed(url, cal_id)
-            if raw_ics:
-                # Unfold lines according to RFC 5545
-                unfolded = re.sub(r"\r?\n[ \t]", "", raw_ics)
-                for match in re.finditer(r"BEGIN:VEVENT(.*?)END:VEVENT", unfolded, re.DOTALL):
-                    block = match.group(1)
-                    
-                    sum_m = re.search(r"^SUMMARY:(.*)$", block, re.M)
-                    if not sum_m:
-                        continue
-                    summary = sum_m.group(1).strip().replace(r"\,", ",").replace(r"\;", ";").replace(r"\\", "\\")
+        raw_ics = fetch_feed(url, cal_id)
+        if raw_ics:
+            # Unfold lines according to RFC 5545
+            unfolded = re.sub(r"\r?\n[ \t]", "", raw_ics)
+            for match in re.finditer(r"BEGIN:VEVENT(.*?)END:VEVENT", unfolded, re.DOTALL):
+                block = match.group(1)
+                
+                sum_m = re.search(r"^SUMMARY:(.*)$", block, re.M)
+                if not sum_m:
+                    continue
+                summary = sum_m.group(1).strip().replace(r"\,", ",").replace(r"\;", ";").replace(r"\\", "\\")
 
-                    dtstart_m = re.search(r"^DTSTART(;[^:]*)?:(.*)$", block, re.M)
-                    dtend_m = re.search(r"^DTEND(;[^:]*)?:(.*)$", block, re.M)
-                    rrule_m = re.search(r"^RRULE:(.*)$", block, re.M)
+                dtstart_m = re.search(r"^DTSTART(;[^:]*)?:(.*)$", block, re.M)
+                if not dtstart_m:
+                    continue
+                dtstart_params = dtstart_m.group(1) or ""
+                dtstart_val = dtstart_m.group(2)
+                d_str, t_str, is_all_day, start_dt = parse_ics_datetime(dtstart_val, dtstart_params)
+                if not d_str or not start_dt:
+                    continue
 
-                    if not dtstart_m:
-                        continue
+                dtend_m = re.search(r"^DTEND(;[^:]*)?:(.*)$", block, re.M)
+                end_dt = None
+                end_t_str = None
+                if dtend_m:
+                    dtend_params = dtend_m.group(1) or ""
+                    dtend_val = dtend_m.group(2)
+                    _, end_t_str, _, end_dt = parse_ics_datetime(dtend_val, dtend_params)
 
-                    start_params = dtstart_m.group(1) or ""
-                    start_val = dtstart_m.group(2)
-                    end_params = (dtend_m.group(1) or "") if dtend_m else ""
-                    end_val = dtend_m.group(2) if dtend_m else ""
+                rrule_m = re.search(r"^RRULE:(.*)$", block, re.M)
 
-                    d_str, t_str, is_all_day, start_dt = parse_ics_datetime(start_val, start_params)
-                    if not d_str or not start_dt:
-                        continue
+                if is_all_day:
+                    time_display = "Ganztägig"
+                elif end_t_str and end_t_str != t_str:
+                    time_display = f"{t_str} – {end_t_str}"
+                else:
+                    time_display = t_str
 
-                    _, end_t_str, _, end_dt = parse_ics_datetime(end_val, end_params) if end_val else (None, None, False, None)
+                # Check for RRULE
+                if rrule_m:
+                    rrule_str = rrule_m.group(1).strip()
+                    instances = expand_rrule(start_dt, end_dt, rrule_str, is_all_day, win_start, win_end)
+                    for inst_start, inst_end in instances:
+                        inst_date_str = inst_start.strftime("%Y-%m-%d")
+                        if is_all_day:
+                            inst_time = "Ganztägig"
+                        elif inst_end:
+                            inst_time = f"{inst_start.strftime('%H:%M')} – {inst_end.strftime('%H:%M')}"
+                        else:
+                            inst_time = inst_start.strftime("%H:%M")
 
-                    if is_all_day:
-                        time_display = "Ganztägig"
-                    elif end_t_str and end_t_str != t_str:
-                        time_display = f"{t_str} – {end_t_str}"
-                    else:
-                        time_display = t_str
-
-                    # Check for RRULE
-                    if rrule_m:
-                        rrule_str = rrule_m.group(1).strip()
-                        instances = expand_rrule(start_dt, end_dt, rrule_str, is_all_day, win_start, win_end)
-                        for inst_start, inst_end in instances:
-                            inst_date_str = inst_start.strftime("%Y-%m-%d")
-                            if is_all_day:
-                                inst_time = "Ganztägig"
-                            elif inst_end:
-                                inst_time = f"{inst_start.strftime('%H:%M')} – {inst_end.strftime('%H:%M')}"
-                            else:
-                                inst_time = inst_start.strftime("%H:%M")
-
-                            ev_obj = {
-                                "title": summary,
-                                "time": inst_time,
-                                "allDay": is_all_day,
-                                "calendar": name,
-                                "color": color
-                            }
-                            events_by_date.setdefault(inst_date_str, []).append(ev_obj)
-                            cal_event_count += 1
-                    else:
-                        # Non-recurring event: check if inside window
-                        ev_date = start_dt.date()
-                        if win_start <= ev_date <= win_end:
-                            ev_obj = {
-                                "title": summary,
-                                "time": time_display,
-                                "allDay": is_all_day,
-                                "calendar": name,
-                                "color": color
-                            }
-                            events_by_date.setdefault(d_str, []).append(ev_obj)
-                            cal_event_count += 1
+                        ev_obj = {
+                            "title": summary,
+                            "time": inst_time,
+                            "allDay": is_all_day,
+                            "calendar": name,
+                            "color": color
+                        }
+                        events_by_date.setdefault(inst_date_str, []).append(ev_obj)
+                        cal_event_count += 1
+                else:
+                    # Non-recurring event: check if inside window
+                    ev_date = start_dt.date()
+                    if win_start <= ev_date <= win_end:
+                        ev_obj = {
+                            "title": summary,
+                            "time": time_display,
+                            "allDay": is_all_day,
+                            "calendar": name,
+                            "color": color
+                        }
+                        events_by_date.setdefault(d_str, []).append(ev_obj)
+                        cal_event_count += 1
 
         cal_summaries.append({
             "name": name,
             "color": color,
-            "hasUrl": bool(url),
+            "hasUrl": bool(url or os.path.exists(os.path.join(CACHE_DIR, f"feed_{cal_id}.ics"))),
             "eventCount": cal_event_count
         })
 
