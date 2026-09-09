@@ -95,7 +95,7 @@ Installiere die benötigten Pakete auf deinem System (Paketnamen für Arch Linux
 Klone das Repository in dein Konfigurationsverzeichnis:
 
 ```bash
-git clone https://github.com/<dein-user>/quickshell.git ~/.config/quickshell
+git clone https://github.com/fbuedding/quickshell.git ~/.config/quickshell
 ```
 
 Der Haupteinstiegspunkt liegt unter `~/.config/quickshell/default/shell.qml`.

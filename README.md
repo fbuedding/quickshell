@@ -95,7 +95,7 @@ Install the required packages on your system (Arch Linux / CachyOS package names
 Clone this repository into your user configuration directory:
 
 ```bash
-git clone https://github.com/<your-user>/quickshell.git ~/.config/quickshell
+git clone https://github.com/fbuedding/quickshell.git ~/.config/quickshell
 ```
 
 If you already have files there, ensure the entry point is at `~/.config/quickshell/default/shell.qml`.
