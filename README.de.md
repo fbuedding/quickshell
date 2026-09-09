@@ -445,3 +445,4 @@ python3 ~/.config/quickshell/default/scripts/fetch_calendar.py --clear-session-s
 Diese Konfiguration basiert auf und ist inspiriert von:
 - [Caelestia shell rebuild tutorial](https://github.com/kartik317/Caelestia_shell_rebuild_tutorial) von kartik317 (diente als ursprüngliche Codebasis)
 - [Caelestia Shell](https://github.com/caelestia-dots/shell) (ursprüngliches Design-Konzept, organische Rundungen und Desktop-Layout)
+- Entwickelt primär mit KI-Unterstützung für Code-Generierung, Refactoring und Layout-Architektur, iterativ auf Hyprland getestet und verfeinert
