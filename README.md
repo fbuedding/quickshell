@@ -2,7 +2,7 @@
 
 [English](README.md) | [Deutsch](README.de.md)
 
-Desktop shell setup for Hyprland built on [Quickshell](https://quickshell.outfoxxed.me/) with the Rosé Pine Moon palette. Features organic morphing panels with concave corner transitions, native PipeWire audio switcher, MPRIS media control, notification daemon, interactive month calendar, and custom DBusMenu system tray.
+Desktop shell setup for Hyprland built on [Quickshell](https://quickshell.outfoxxed.me/) with dynamic theming (featuring Rosé Pine Moon as the default palette, alongside Tokyo Night and Catppuccin Mocha). Features organic morphing panels with concave corner transitions, native PipeWire audio switcher, MPRIS media control, notification daemon, interactive month calendar, and custom DBusMenu system tray.
 
 ---
 
@@ -23,7 +23,7 @@ This shell acts as a unified desktop environment for Hyprland, replacing several
 
 2. **Custom Themed System Tray:**
    - DBus StatusNotifierItem (SNI) implementation for background apps (Steam, Heroic, KeePassXC, Bluetooth, etc.).
-   - Replaces unstylable native Qt popup menus with custom QML menus styled in the Rosé Pine Moon palette.
+   - Replaces unstylable native Qt popup menus with custom QML menus dynamically styled in the active palette (default: Rosé Pine Moon).
    - Morphs seamlessly from the topbar with concave curves anchored to the active icon.
    - Transparent topbar input mask: other tray icons remain fully hoverable and clickable while a menu is open.
    - Nested submenus, checkable items, separators, and dynamic width calculation.
@@ -32,7 +32,7 @@ This shell acts as a unified desktop environment for Hyprland, replacing several
    - Full DBus `org.freedesktop.Notifications` implementation. Replaces external notification daemons.
    - Interactive toast popups (top right) with action buttons and hover pause.
    - Slide-in side panel from the right screen edge with concave corner morphing.
-   - Quick toggles row: Bluetooth manager, Do Not Disturb, Microphone mute, and Theme switcher.
+   - Quick toggles grid (2x2): Bluetooth manager, Do Not Disturb, Microphone mute, and Theme switcher.
    - Integrated Bluetooth manager: adapter toggle, device scan, and one-click connect/disconnect.
    - Audio output sink switcher: select output devices directly without external tools.
    - Microphone control: live input level slider and toggle.
@@ -124,7 +124,7 @@ Before launching, check and adjust the following files to match your hardware an
      ```
 
 4. **Qt 6 Icon Theme (`~/.config/qt6ct/qt6ct.conf`):**
-   - Set `icon_theme=rose-pine-moon-icons` (or your preferred theme) to ensure tray and app icons render properly.
+   - Set `icon_theme=rose-pine-moon-icons` (or your preferred theme) to ensure tray and app icons match the default Rosé Pine Moon palette.
 
 ---
 
@@ -247,7 +247,7 @@ The shell supports instant theme switching at runtime across all components with
 - `catppuccin-mocha` (Catppuccin Mocha)
 
 ### Switching Themes
-- **Control Center:** Click the theme toggle button in the quick toggles row of the notification panel.
+- **Control Center:** Click the theme toggle button in the quick toggles grid of the notification panel.
 - **Quickshell IPC:**
   ```bash
   qs ipc call theme next                # Cycle to the next theme

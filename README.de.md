@@ -2,7 +2,7 @@
 
 [English](README.md) | [Deutsch](README.de.md)
 
-Desktop-Shell-Setup für Hyprland auf Basis von [Quickshell](https://quickshell.outfoxxed.me/) mit der Rosé Pine Moon Farbpalette. Bietet organisch morphende Menüs und Panels mit konkaven Eckenübergängen, nativen PipeWire-Audio-Umschalter, MPRIS-Mediensteuerung, Benachrichtigungs-Daemon, interaktiven Monatskalender und System-Tray mit DBusMenu-Unterstützung.
+Desktop-Shell-Setup für Hyprland auf Basis von [Quickshell](https://quickshell.outfoxxed.me/) mit dynamischem Theming (Rosé Pine Moon als Standardpalette, neben Tokyo Night und Catppuccin Mocha). Bietet organisch morphende Menüs und Panels mit konkaven Eckenübergängen, nativen PipeWire-Audio-Umschalter, MPRIS-Mediensteuerung, Benachrichtigungs-Daemon, interaktiven Monatskalender und System-Tray mit DBusMenu-Unterstützung.
 
 ---
 
@@ -23,7 +23,7 @@ Diese Shell dient als zentrale Desktop-Umgebung für Hyprland und ersetzt mehrer
 
 2. **Themed System-Tray:**
    - DBus StatusNotifierItem (SNI) Integration für Hintergrundanwendungen (Steam, Heroic, KeePassXC, Bluetooth etc.).
-   - Ersetzt native, unstylbare Qt-Menüs durch QML-Menüs im Rosé Pine Moon Farbschema.
+   - Ersetzt native, unstylbare Qt-Menüs durch dynamisch gestaltete QML-Menüs in der aktiven Themenpalette (Standard: Rosé Pine Moon).
    - Nahtloser Übergang aus der Leiste mit konkaven Kurven, verankert am aktiven Icon.
    - Transparente Klick-Maske auf der Leiste: Andere Tray-Icons bleiben bei geöffnetem Menü voll ansprech- und klickbar.
    - Verschachtelte Untermenüs, Checkboxen, Trennstriche und dynamische Breitenberechnung.
@@ -32,7 +32,7 @@ Diese Shell dient als zentrale Desktop-Umgebung für Hyprland und ersetzt mehrer
    - Vollwertiger DBus `org.freedesktop.Notifications` Server. Ersetzt externe Notification-Daemons.
    - Interaktive Toast-Popups oben rechts mit Aktions-Buttons und Pausieren bei Maus-Hover.
    - Ausfahrbares Seitenpanel von der rechten Bildschirmkante mit konkavem Ecken-Morphing.
-   - Schnellschalter-Zeile: Bluetooth-Manager, Nicht Stören, Mikrofon-Stummschaltung und Theme-Switcher.
+   - Schnellschalter-Raster (2x2): Bluetooth-Manager, Nicht Stören, Mikrofon-Stummschaltung und Theme-Switcher.
    - Integrierter Bluetooth-Manager: Adapter ein/aus, Gerätesuche und 1-Klick-Verbindung.
    - Audio-Ausgabe-Umschalter: Direkte Auswahl des aktiven PipeWire-Sinks ohne Zusatztools.
    - Mikrofon-Steuerung: Schieberegler für Eingangspegel und Mute-Schalter.
@@ -124,7 +124,7 @@ Passe vor dem ersten Start folgende Stellen an deine Hardware und dein System an
      ```
 
 4. **Qt 6 Icon-Theme (`~/.config/qt6ct/qt6ct.conf`):**
-   - Setze `icon_theme=rose-pine-moon-icons`, damit Tray- und App-Icons korrekt aufgelöst werden.
+   - Setze `icon_theme=rose-pine-moon-icons` (oder dein bevorzugtes Icon-Theme), damit Tray- und App-Icons passend zur Standardpalette Rosé Pine Moon aufgelöst werden.
 
 ---
 
@@ -247,7 +247,7 @@ Die Shell unterstützt dynamisches Theme-Switching zur Laufzeit über alle Kompo
 - `catppuccin-mocha` (Catppuccin Mocha)
 
 ### Theme wechseln
-- **Kontrollzentrum:** Klick auf den Theme-Button in der Schnelleinstellungen-Zeile des Benachrichtigungs-Panels.
+- **Kontrollzentrum:** Klick auf den Theme-Button im Schnelleinstellungen-Raster (2x2) des Benachrichtigungs-Panels.
 - **Quickshell IPC:**
   ```bash
   qs ipc call theme next                # Zum nächsten Theme wechseln
