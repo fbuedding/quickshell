@@ -25,6 +25,9 @@ PanelWindow {
         function toggleDnd() {
             NotificationState.toggleDnd();
         }
+        function dismissAll() {
+            NotificationState.dismissAll();
+        }
     }
 
     WlrLayershell.layer: WlrLayer.Overlay
@@ -264,10 +267,11 @@ PanelWindow {
                     anchors.fill: parent
                     spacing: 8
                     clip: true
-                    model: NotificationState.notifications
+                    model: NotificationState.notifications.values
                     visible: NotificationState.count > 0
 
                     delegate: NotificationCard {
+                        required property var modelData
                         width: notifList.width
                         notification: modelData
                     }

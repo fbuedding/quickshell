@@ -22,7 +22,7 @@ Singleton {
     function toggleDnd()   { dnd = !dnd; }
 
     function dismiss(notification) {
-        if (!notification) return;
+        if (!notification || typeof notification.dismiss !== "function") return;
         removePopup(notification);
         notification.dismiss();
     }
