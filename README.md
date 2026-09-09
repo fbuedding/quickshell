@@ -2,6 +2,10 @@
 
 [English](README.md) | [Deutsch](README.de.md)
 
+![Quickshell Desktop - Control Center, Tray and Power Menu](assets/control_center.png)
+
+![Quickshell Desktop - Calendar and Terminal Overview](assets/calendar.png)
+
 Desktop shell setup for Hyprland built on [Quickshell](https://quickshell.outfoxxed.me/) with dynamic theming (featuring Rosé Pine Moon as the default palette, alongside Tokyo Night and Catppuccin Mocha). Features organic morphing panels with concave corner transitions, native PipeWire audio switcher, MPRIS media control, notification daemon, interactive month calendar, and custom DBusMenu system tray.
 
 ---
