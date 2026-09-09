@@ -6,6 +6,77 @@ Desktop-Shell-Setup für Hyprland auf Basis von [Quickshell](https://quickshell.
 
 ---
 
+## High-Level Funktionsübersicht
+
+Diese Shell dient als zentrale Desktop-Umgebung für Hyprland und ersetzt mehrere eigenständige Hintergrund-Dienste und Leisten durch einen einzigen, ressourcenschonenden Qt 6/QML-Prozess.
+
+### Was die Shell bietet
+
+1. **TopBar:**
+   - 34px hohe Leiste mit automatischer Platzreservierung (exclusive zone).
+   - 10 Workspaces mit Fensterstatus und aktiver Unterstreichung.
+   - Live-Hardwareüberwachung: CPU-Auslastung (`/proc/stat`), RAM-Verbrauch (`/proc/meminfo`) und CPU-Temperatur (`sensors`).
+   - PipeWire Lautstärke-Widget mit Anzeige des Ausgabegerätenamens und Scroll-Funktion.
+   - Uhrzeit mit Wochentag; Klick öffnet das Kalender-Dropdown.
+   - Benachrichtigungs-Taste mit Zähler für ungelesene Meldungen und Nicht-Stören-Status (DND).
+   - Distributions-Symbol zum Umschalten des Power-Menüs.
+
+2. **Themed System-Tray:**
+   - DBus StatusNotifierItem (SNI) Integration für Hintergrundanwendungen (Steam, Heroic, KeePassXC, Bluetooth etc.).
+   - Ersetzt native, unstylbare Qt-Menüs durch QML-Menüs im Rosé Pine Moon Farbschema.
+   - Nahtloser Übergang aus der Leiste mit konkaven Kurven, verankert am aktiven Icon.
+   - Transparente Klick-Maske auf der Leiste: Andere Tray-Icons bleiben bei geöffnetem Menü voll ansprech- und klickbar.
+   - Verschachtelte Untermenüs, Checkboxen, Trennstriche und dynamische Breitenberechnung.
+
+3. **Kontrollzentrum & Benachrichtigungs-Daemon:**
+   - Vollwertiger DBus `org.freedesktop.Notifications` Server. Ersetzt externe Notification-Daemons.
+   - Interaktive Toast-Popups oben rechts mit Aktions-Buttons und Pausieren bei Maus-Hover.
+   - Ausfahrbares Seitenpanel von der rechten Bildschirmkante mit konkavem Ecken-Morphing.
+   - Schnellschalter-Zeile: Nicht Stören, Bluetooth-Manager und Mikrofon-Stummschaltung.
+   - Integrierter Bluetooth-Manager: Adapter ein/aus, Gerätesuche und 1-Klick-Verbindung.
+   - Audio-Ausgabe-Umschalter: Direkte Auswahl des aktiven PipeWire-Sinks ohne Zusatztools.
+   - Mikrofon-Steuerung: Schieberegler für Eingangspegel und Mute-Schalter.
+   - MPRIS-Player: Cover-Art, Songtitel, Interpret, Seekbar (`mm:ss`) und Mediensteuerung.
+   - Benachrichtigungshistorie mit Einzel- und Gesamtlöschung.
+
+4. **Interaktiver Kalender & Agenda:**
+   - Monatsansicht im 42-Tage-Raster mit ISO 8601 Kalenderwochen (KW 1-53).
+   - Heutiger und ausgewählter Tag hervorgehoben; Punkte an Tagen mit Terminen.
+   - Terminliste mit Startzeit, Zusammenfassung und farbigem Kalender-Badge.
+   - Python-Daemon im Hintergrund zum Abrufen von `.ics`-Feeds aus Google Calendar oder Nextcloud.
+   - Sichere Keyring-Anbindung über KeePassXC oder `secret-tool` verhindert offene Token in Git.
+
+5. **Lautstärke- & Mute-OSD:**
+   - Zentriertes Pill-Overlay am unteren Bildschirmrand.
+   - Reagiert über PipeWire automatisch auf Hotkeys, `wpctl` und Mausrad an der Bar.
+   - Zeigt Lautstärke-Prozentwert, dynamisches Audio-Icon und animierten Balken.
+   - Klickdurchlässig (`mask: Region { item: null }`), blockiert keine Fenster oder Mausklicks.
+
+6. **Power-Menü:**
+   - Fährt oben links ein und schließt über konkave Kurven bündig an Leiste und Rand an.
+   - Optionen für Bereitschaft (`systemctl suspend`), Abmelden, Neustart und Herunterfahren (`hyprshutdown`).
+   - Vollständig per Tastatur steuerbar; Schließen mit Escape.
+
+7. **App-Launcher:**
+   - Unten zentriertes Suchmenü für Desktop-Anwendungen mit Icons und Echtzeitsuche.
+
+8. **Bildschirmränder & Konkave Ecken:**
+   - 12px Ränder unten, links und rechts.
+   - 4 konkave Ecken verbinden die Außenleisten fließend mit den Hyprland-Fenstern.
+
+### Ersetzte externe Programme
+
+Diese Shell macht folgende separate Werkzeuge überflüssig:
+- `waybar` oder `polybar` (Statusleiste)
+- `swaync`, `dunst` oder `mako` (Benachrichtigungs-Daemon und Kontrollzentrum)
+- `swayosd`, `avizo` oder `wob` (Lautstärke-OSD)
+- `wlogout` oder Power-Skripte (Energie-Menü)
+- `rofi` oder `wofi` (App-Launcher)
+- `blueman-applet` oder `blueman-manager` (Bluetooth-Verwaltung)
+- `pavucontrol` oder `pwvucontrol` für den alltäglichen Gerätewechsel
+
+---
+
 ## Installation und Einrichtung
 
 ### 1. Voraussetzungen und Abhängigkeiten
@@ -134,6 +205,66 @@ Erstelle `~/.config/quickshell/default/calendar/calendars.local.json` (wird von 
 
 ---
 
+## Hyprland-Integration
+
+### 1. Klassische Syntax (`~/.config/hypr/hyprland.conf`)
+
+Füge folgende Zeilen in deine `hyprland.conf` ein:
+
+```ini
+# Autostart des Quickshell-Daemons
+exec-once = quickshell -d
+exec-once = keepassxc
+exec-once = systemctl --user start hyprpolkitagent
+
+# Synchronisation der Eckenrundung
+decoration {
+    rounding = 5
+}
+
+# Tastenkombinationen für Quickshell IPC
+bind = SUPER, R, exec, qs ipc call applauncher toggle
+bind = SUPER, Escape, exec, qs ipc call powermenu toggle
+bind = SUPER, I, exec, qs ipc call notifications toggle
+bind = SUPER, C, exec, qs ipc call calendar toggle
+
+# Animationen auf statischen Rand-Overlays deaktivieren
+layerrule = noanim, quickshell-corners
+```
+
+### 2. Moderne Lua-Syntax (`~/.config/hypr/hyprland.lua`, Hyprland 0.55+)
+
+Falls du das Lua-Konfigurationsformat verwendest:
+
+```lua
+-- Autostart
+hl.on("hyprland.start", function()
+    hl.exec_cmd("quickshell -d & keepassxc")
+    hl.exec_cmd("systemctl --user start hyprpolkitagent")
+end)
+
+-- Tastenkombinationen
+local launcher = "qs ipc call applauncher toggle"
+local powerMenu = "qs ipc call powermenu toggle"
+local controlCenter = "qs ipc call notifications toggle"
+local calendar = "qs ipc call calendar toggle"
+
+hl.bind(mainMod .. " + " .. "R", hl.dsp.exec_cmd(launcher))
+hl.bind(mainMod .. " + " .. "Escape", hl.dsp.exec_cmd(powerMenu))
+hl.bind(mainMod .. " + " .. "I", hl.dsp.exec_cmd(controlCenter))
+hl.bind(mainMod .. " + " .. "C", hl.dsp.exec_cmd(calendar))
+
+-- Eckenrundung synchronisieren
+hl.config({
+    decoration = {
+        rounding = 5,
+        rounding_power = 1,
+    },
+})
+```
+
+---
+
 ## Verzeichnisstruktur
 
 ```text
@@ -192,100 +323,6 @@ Erstelle `~/.config/quickshell/default/calendar/calendars.local.json` (wird von 
 │       └── fetch_calendar.py    # iCal-Parser und Cache-Daemon
 ├── README.md                    # Englische Dokumentation
 └── README.de.md                 # Deutsche Dokumentation
-```
-
----
-
-## Komponenten im Überblick
-
-### 1. TopBar (`default/bar/Bar.qml`)
-- **Höhe:** 34px (`exclusiveZone: 34`, reserviert Platz in Hyprland).
-- **Links:** Distributions-Logo (Klick schaltet Power-Menü um) und System-Tray.
-- **Mitte:** 10 Workspaces mit Fensterstatus und aktiver Unterstreichung.
-- **Rechts:** SysInfo (CPU, RAM, Sensoren), Lautstärke, Uhrzeit und Benachrichtigungs-Glocke.
-- **Klick-Verhalten:** Klicks auf freie Flächen der Bar schließen offene Menüs.
-
-### 2. System-Tray (`default/bar/Tray.qml` & `default/tray/`)
-- Verwendet StatusNotifierItem (SNI) über DBus.
-- Ersetzt native Qt-Popups durch ein voll thematisierbares QML-Menü in Rosé Pine Moon Farben.
-- Nahtloses Morphen aus der TopBar mit konkaven Kurven direkt am jeweiligen Icon.
-- Klick-Durchlässigkeit auf der Leiste: Klicks auf andere Tray-Icons öffnen sofort das neue Menü; erneuter Klick auf dasselbe Icon schließt das Menü.
-- Unterstützt Untermenüs, Checkboxen, Trennstriche und dynamische Breitenberechnung.
-
-### 3. Audio & Lautstärke (`default/bar/Volume.qml`)
-- **Linksklick:** Öffnet Audio-Bereich im Kontrollzentrum.
-- **Rechtsklick:** Schaltet Stummschaltung um (Mute).
-- **Mittelklick:** Wechselt zum nächsten Audio-Ausgabegerät via `default/scripts/cycle_audio.py`.
-- **Mausrad:** Ändert die Lautstärke in 2%-Schritten.
-
-### 4. Kontrollzentrum & Benachrichtigungen (`default/notifications/`)
-- **Notification-Server:** Nativer DBus-Daemon (`org.freedesktop.Notifications`). Ersetzt `swaync` oder `dunst`.
-- **Toast-Popups:** Popups oben rechts mit App-Icon, Betreff, Text und Aktions-Buttons. Pausiert bei Hover.
-- **Kontrollzentrum-Panel:** Fährt von rechts ein mit morphenden konkaven Kurven.
-- **Quick-Toggles:**
-  - Nicht Stören (DND) Schalter.
-  - Nativer Bluetooth-Manager mit Gerätesuche, Power und Connect.
-  - Mikrofon-Mute und Lautstärkeregler.
-- **Audio-Sink-Umschalter:** Direkte Auswahl des aktiven Ausgabegeräts mit einem Klick.
-- **MPRIS-Player:** Album-Cover, Titel, klickbare Timeline (`mm:ss`) und Mediensteuerung.
-
-### 5. Kalender-Dropdown (`default/calendar/`)
-- Angedockt an die Uhrzeit der TopBar.
-- 42-Tage-Monatsraster mit ISO 8601 Kalenderwochen (KW 1-53) und Mo-So Spalten.
-- Heutiger und ausgewählter Tag hervorgehoben; Termintage tragen Farbpunkte.
-- Termin-Agenda mit Startzeit, Titel und farbiger Kalender-Kennzeichnung.
-- Sichere Secrets-Verwaltung über KeePassXC oder `secret-tool`.
-
-### 6. Lautstärke-OSD (`default/osd/VolumeOsd.qml`)
-- Zentriertes Pill-Overlay am unteren Bildschirmrand.
-- Reagiert sofort auf Lautstärke-Änderungen in PipeWire (`wpctl`, Tasten, Mausrad).
-- Zeigt Prozentwert, animierten Balken und dynamisches Lautsprecher-Icon an.
-- Blendet nach 1,5 Sekunden Inaktivität aus. Vollständig klickdurchlässig (`Region { item: null }`).
-
-### 7. Power-Menü (`default/power_menu/PowerMenu.qml`)
-- Fährt oben links ein und schließt über konkave Kurven bündig an Leiste und Rand an.
-- Aktionen: Bereitschaft (`systemctl suspend`), Abmelden, Neustart, Herunterfahren (`hyprshutdown`).
-- Mit Tastatur bedienbar; Schließen mit Escape.
-
-### 8. App-Launcher (`default/app_launcher/AppLauncher.qml`)
-- Fährt unten zentriert über dem Bildschirmrand nach oben.
-- Durchsucht Desktop-Anwendungen mit Icons und Kategorien.
-
-### 9. Bildschirmränder & Konkave Innenecken (`default/Border.qml`)
-- 12px Ränder unten, links und rechts.
-- 4 konkave Ecken verbinden die Außenränder fließend mit den Hyprland-Fenstern.
-
----
-
-## Hyprland-Integration (`~/.config/hypr/hyprland.conf` oder `hyprland.lua`)
-
-Beispiel-Integration für Hyprland (Lua):
-
-```lua
--- Autostart
-hl.on("hyprland.start", function()
-    hl.exec_cmd("quickshell -d & keepassxc & hyprpaper")
-    hl.exec_cmd("systemctl --user start hyprpolkitagent")
-end)
-
--- IPC Tastenkombinationen
-local menu = "qs ipc call applauncher toggle"
-local powerMenu = "qs ipc call powermenu toggle"
-local notificationPanel = "qs ipc call notifications toggle"
-local calendar = "qs ipc call calendar toggle"
-
-hl.bind(mainMod .. " + " .. "R", hl.dsp.exec_cmd(menu))
-hl.bind(mainMod .. " + " .. "Escape", hl.dsp.exec_cmd(powerMenu))
-hl.bind(mainMod .. " + " .. "I", hl.dsp.exec_cmd(notificationPanel))
-hl.bind(mainMod .. " + " .. "C", hl.dsp.exec_cmd(calendar))
-
--- Rundung synchronisieren
-hl.config({
-    decoration = {
-        rounding = 5,
-        rounding_power = 1,
-    },
-})
 ```
 
 ---
