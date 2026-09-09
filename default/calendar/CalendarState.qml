@@ -82,7 +82,16 @@ Singleton {
         interval: 900000
         running: true
         repeat: true
-        triggeredOnStart: true
+        triggeredOnStart: false
+        onTriggered: root.refresh()
+    }
+
+    // Startup delay to allow Hyprland, KeePassXC and network to initialize
+    Timer {
+        id: startupTimer
+        interval: 5000
+        running: true
+        repeat: false
         onTriggered: root.refresh()
     }
 

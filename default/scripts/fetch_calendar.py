@@ -57,43 +57,37 @@ def save_session_secrets(secrets):
     except Exception:
         pass
 
-def lookup_keyring_secret(keyring_spec, cal_name=""):
+def lookup_keyring_secret(keyring_spec):
     """
     Looks up a secret URL from FreeDesktop Secret Service (KeePassXC) via secret-tool.
-    Supports string shorthand (matching Title or service/calendar attributes)
-    or a dictionary of exact key-value attributes.
+    Queries the entry directly by Title attribute with a 15-second timeout.
+    Returns a tuple of (url_string, timed_out_boolean).
     """
     if not keyring_spec:
-        return ""
+        return "", False
 
-    candidates = []
     if isinstance(keyring_spec, dict):
         args = []
         for k, v in keyring_spec.items():
             args.extend([str(k), str(v)])
-        candidates.append(args)
     elif isinstance(keyring_spec, str):
-        # 1. Match KeePassXC entry Title
-        candidates.append(["Title", keyring_spec])
-        candidates.append(["title", keyring_spec])
-        # 2. Match service/calendar attributes
-        candidates.append(["service", "quickshell-calendar", "calendar", keyring_spec])
-        candidates.append(["service", "quickshell-calendar", "name", keyring_spec])
-        if cal_name and cal_name != keyring_spec:
-            candidates.append(["service", "quickshell-calendar", "calendar", cal_name])
+        args = ["Title", keyring_spec]
+    else:
+        return "", False
 
-    for args in candidates:
-        try:
-            cmd = ["secret-tool", "lookup"] + args
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=3.5)
-            if res.returncode == 0 and res.stdout.strip():
-                val = res.stdout.strip()
-                if val.startswith("http"):
-                    return val
-        except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
-            pass
+    try:
+        cmd = ["secret-tool", "lookup"] + args
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=15.0)
+        if res.returncode == 0 and res.stdout.strip():
+            val = res.stdout.strip()
+            if val.startswith("http"):
+                return val, False
+    except subprocess.TimeoutExpired:
+        return "", True
+    except Exception:
+        pass
 
-    return ""
+    return "", False
 
 def parse_ics_datetime(val, params=""):
     """Parses an iCalendar DTSTART/DTEND string into (date_str, time_str, is_all_day, datetime_obj)."""
@@ -256,6 +250,7 @@ def main():
 
     events_by_date = {}
     cal_summaries = []
+    keyring_timed_out = False
 
     for idx, cal in enumerate(calendars):
         if not cal.get("enabled", True):
@@ -278,9 +273,11 @@ def main():
             cache_key = str(keyring_spec)
             if cache_key in session_secrets and session_secrets[cache_key].startswith("http"):
                 url = session_secrets[cache_key]
-            else:
-                url = lookup_keyring_secret(keyring_spec, name)
-                if url:
+            elif not keyring_timed_out:
+                url, timed_out = lookup_keyring_secret(keyring_spec)
+                if timed_out:
+                    keyring_timed_out = True
+                elif url:
                     session_secrets[cache_key] = url
                     session_secrets_updated = True
 
