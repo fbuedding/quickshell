@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import "./app_launcher"
 import "./bar"
+import "./calendar"
 import "./notifications"
 import "./power_menu"
 import "./osd"
@@ -19,6 +20,13 @@ ShellRoot {
     Variants {
 	model: Quickshell.screens
 	PowerMenu {
+	    property var modelData
+	    screen: modelData
+	}
+    }
+    Variants {
+	model: Quickshell.screens
+	CalendarDropdown {
 	    property var modelData
 	    screen: modelData
 	}

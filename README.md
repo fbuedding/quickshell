@@ -16,10 +16,15 @@ Elegantes Desktop-Shell-Setup für **Hyprland** auf Basis von [Quickshell](https
 │   │   ├── Workspaces.qml       # 10 Workspaces (zentriert)
 │   │   ├── SysInfo.qml          # CPU, RAM & Temperaturanzeige
 │   │   ├── Volume.qml           # Lautstärke-Widget (WirePlumber)
-│   │   ├── Clock.qml            # Uhrzeit & Datum
+│   │   ├── Clock.qml            # Uhrzeit & Datum (Klick toggelt Kalender)
 │   │   ├── Tray.qml             # System-Tray (StatusNotifierItem & QsMenu)
 │   │   ├── NotificationButton.qml # Glocken-Button mit Unread-Badge & DND
 │   │   └── Separator.qml        # Trennelemente
+│   ├── calendar/
+│   │   ├── CalendarDropdown.qml # Monatskalender & Termin-Agenda Dropdown
+│   │   ├── CalendarState.qml    # Singleton (Datum, Grid, Event-Filterung & Sync)
+│   │   ├── calendars.json       # Konfiguration der iCal/Google-Kalender-Feeds
+│   │   └── qmldir               # QML-Modulregistrierung
 │   ├── notifications/
 │   │   ├── NotificationState.qml # Singleton (NotificationServer-Daemon & State)
 │   │   ├── NotificationPanel.qml # Slide-in Kontrollzentrum (MPRIS + Notif-Historie)
@@ -46,7 +51,8 @@ Elegantes Desktop-Shell-Setup für **Hyprland** auf Basis von [Quickshell](https
 │   │   ├── Theme.qml            # Globale Metriken (rounding = 5, Border-Dicken)
 │   │   └── qmldir               # Singleton-Registrierung (Colors, Theme)
 │   └── scripts/
-│       └── cycle_audio.py       # Skript zum Durchwechseln des Audio-Ausgabegeräts
+│       ├── cycle_audio.py       # Skript zum Durchwechseln des Audio-Ausgabegeräts
+│       └── fetch_calendar.py    # iCal/Google Calendar Parser & Caching-Daemon
 └── README.md                    # Diese Dokumentation
 ```
 
@@ -142,7 +148,27 @@ Elegantes Desktop-Shell-Setup für **Hyprland** auf Basis von [Quickshell](https
 
 ---
 
-### 7. Bildschirmränder & Konkave Innenecken (`default/Border.qml`)
+### 7. Kalender & Termin-Agenda (`default/calendar/`)
+- **Dropdown-Panel ([`CalendarDropdown.qml`](default/calendar/CalendarDropdown.qml)):**
+  - Schwebt elegant 6px unterhalb der TopBar auf der rechten Bildschirmseite (`WlrLayer.Overlay`).
+  - Schließt sanft per Klick außerhalb, Escape-Taste oder erneutem Klick auf die Uhr.
+- **Interaktive Monatsansicht:**
+  - 42-Tage-Raster mit ISO 8601 Kalenderwochen (KW 1–53) und Mo–So Spalten.
+  - Heutiger Tag wird mit Rosé-Pine-Farbakzent hervorgehoben; beliebiger Tag lässt sich anklicken.
+  - Schnelle Monatsnavigation (Vor, Zurück) und „Heute“-Pill-Button.
+- **Termine & Feiertage (Google Calendar / iCal Feed):**
+  - Tage mit anstehenden Terminen tragen farbige Indikator-Punkte.
+  - Klick auf einen Tag filtert die Termin-Agenda darunter: zeigt Startzeit, Titel, Kalenderquelle und Farbakzent.
+  - **Hintergrund-Daemon ([`fetch_calendar.py`](default/scripts/fetch_calendar.py)):** Parse `.ics`-Feeds direkt via Python ohne Abhängigkeit von Thunderbird, cacht Termine lokal in `~/.cache/quickshell/calendar/`.
+  - **Konfiguration ([`calendars.json`](default/calendar/calendars.json)):** Einfaches Hinzufügen privater Google-Calendar-iCal-URLs mit benutzerdefinierten Farben. Out-of-the-Box mit deutschen Feiertagen vorkonfiguriert.
+  - **Thunderbird-Shortcut:** Schneller 1-Klick-Start von Thunderbird über den Header-Button.
+- **Shortcuts & IPC:**
+  - Klick auf Uhrzeit in der TopBar ([`default/bar/Clock.qml`](default/bar/Clock.qml))
+  - IPC: `qs ipc call calendar toggle` / `open` / `close` / `next` / `prev` / `today`
+
+---
+
+### 8. Bildschirmränder & Konkave Innenecken (`default/Border.qml`)
 - **Ränder:** 12px dicke Balken unten, links und rechts (`WlrLayer.Top`). Oben fungiert die TopBar als Begrenzung.
 - **Innenecken:** Ein vollkommen klickdurchlässiges Overlay (`quickshell-corners`) spannt die 4 konkaven Übergänge auf:
   - Oben links, oben rechts, unten links, unten rechts.
@@ -150,7 +176,7 @@ Elegantes Desktop-Shell-Setup für **Hyprland** auf Basis von [Quickshell](https
 
 ---
 
-### 8. Design & Metriken (`default/theme/`)
+### 9. Design & Metriken (`default/theme/`)
 
 #### [`Theme.qml`](default/theme/Theme.qml)
 Zentraler Singleton für konsistente Maße, synchronisiert mit Hyprland:
@@ -245,6 +271,12 @@ qs ipc call powermenu toggle
 # IPC: App-Launcher umschalten
 qs ipc call applauncher toggle
 
+# IPC: Kalender & Termin-Agenda umschalten / steuern
+qs ipc call calendar toggle
+qs ipc call calendar today
+qs ipc call calendar next
+qs ipc call calendar prev
+
 # IPC: Kontrollzentrum / Benachrichtigungen umschalten
 qs ipc call notifications toggle
 
@@ -270,9 +302,11 @@ Kernelemente für ein geschliffenes Alltags-Desktop-Gefühl, die visuelles Feedb
   - Reagiert sofort auf Tasten wie `XF86AudioRaiseVolume`, `XF86AudioLowerVolume`, `XF86AudioMute` und Mausrad-Pegeländerungen.
   - Zeigt Pegel-Balken, Prozentwert und dynamisches Audio-Icon an; fadet nach 1,5s weich aus.
   - *Ersetzt:* `swayosd`, `avizo`, `wob`.
-- [ ] **Interaktiver Monatskalender bei Klick auf die Uhr**
-  - Klick auf die Uhrzeit in der TopBar ([`default/bar/Clock.qml`](default/bar/Clock.qml)) öffnet ein Dropdown-Panel.
-  - Monatsübersicht, hervorgehobener heutiger Tag, Wochentage und Kalenderwochen im Rosé-Pine-Stil.
+- [x] **Interaktiver Monatskalender & Termin-Agenda bei Klick auf die Uhr**
+  - Klick auf die Uhrzeit in der TopBar ([`default/bar/Clock.qml`](default/bar/Clock.qml)) öffnet das elegante Rosé-Pine-Moon Kalender-Dropdown ([`default/calendar/CalendarDropdown.qml`](default/calendar/CalendarDropdown.qml)).
+  - Monatsraster (42 Tage), ISO-Kalenderwochen (KW), hervorgehobener heutiger & ausgewählter Tag, Vor-/Zurück-Navigation und „Heute“-Button.
+  - **Kalender-Integration (Google Calendar / iCal / Thunderbird):** Direkte Feeds über [`default/calendar/calendars.json`](default/calendar/calendars.json) mit Hintergrund-Synchronisation via Python-Daemon ([`default/scripts/fetch_calendar.py`](default/scripts/fetch_calendar.py)).
+  - Farbige Termin-Indikatoren auf Monatstagen; Agenda zeigt Startzeit, Titel und Kalender-Badge; Thunderbird-Schnellstarttaste.
 - [ ] **Nativer Audio-Sink-Umschalter & Volume-Slider**
   - Schnelle Lautstärkeregelung per Schieberegler und 1-Klick-Umschaltung des Audio-Ausgabegeräts (z. B. Kopfhörer ↔ Lautsprecher ↔ Monitor).
   - Nativ über `Quickshell.Services.Pipewire` direkt im Kontrollzentrum oder als Popover an der Leiste.

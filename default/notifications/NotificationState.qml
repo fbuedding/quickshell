@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
+import "../calendar"
 
 Singleton {
     id: root
@@ -16,8 +17,14 @@ Singleton {
     // Active popup toasts shown on-screen
     property var activePopups: []
 
-    function togglePanel() { panelVisible = !panelVisible; }
-    function showPanel()   { panelVisible = true; }
+    function togglePanel() {
+        panelVisible = !panelVisible;
+        if (panelVisible) CalendarState.hide();
+    }
+    function showPanel() {
+        panelVisible = true;
+        CalendarState.hide();
+    }
     function hidePanel()   { panelVisible = false; }
     function toggleDnd()   { dnd = !dnd; }
 

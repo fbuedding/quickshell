@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Feiertage",
+    "url": "https://calendar.google.com/calendar/ical/de.german%23holiday%40group.v.calendar.google.com/public/basic.ics",
+    "color": "#c4a7e7",
+    "enabled": true
+  },
+  {
+    "name": "Arbeit",
+    "keyring": "google-calendar-work",
+    "color": "#9ccfd8",
+    "enabled": true
+  },
+  {
+    "name": "Privat",
+    "keyring": "google-calendar-private",
+    "color": "#eb6f92",
+    "enabled": true
+  },
+  {
+    "name": "Familie",
+    "keyring": "google-calendar-family",
+    "color": "#f6c177",
+    "enabled": true
+  }
+]
