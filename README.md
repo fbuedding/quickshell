@@ -1,230 +1,285 @@
 # Quickshell Desktop Configuration
 
-Elegantes Desktop-Shell-Setup für **Hyprland** auf Basis von [Quickshell](https://quickshell.outfoxxed.me/) mit **Rosé Pine Moon**-Theme.
+[English](README.md) | [Deutsch](README.de.md)
+
+Desktop shell setup for Hyprland built on [Quickshell](https://quickshell.outfoxxed.me/) with the Rosé Pine Moon palette. Features organic morphing panels with concave corner transitions, native PipeWire audio switcher, MPRIS media control, notification daemon, interactive month calendar, and custom DBusMenu system tray.
 
 ---
 
-## 📁 Struktur
+## Installation and Setup
+
+### 1. Prerequisites and Dependencies
+
+Install the required packages on your system (Arch Linux / CachyOS package names):
+
+- **Shell Engine:** `quickshell` (or `quickshell-git`)
+- **Qt 6 Modules:** `qt6-base`, `qt6-declarative`, `qt6-svg`
+- **Audio & Media:** `pipewire`, `wireplumber`, `libpipewire`, `pactl` (from `libpulse`)
+- **Secret Service (for calendar):** `libsecret` (provides `secret-tool`), and a Secret Service provider like `keepassxc`
+- **Fonts & Icons:** `ttf-jetbrains-mono-nerd`, `rose-pine-moon-icons` (or any Nerd Font and icon theme)
+- **Optional / Recommended:** `bluez`, `bluez-utils`, `lm_sensors`, `grim`
+
+### 2. Clone Repository
+
+Clone this repository into your user configuration directory:
+
+```bash
+git clone https://github.com/<your-user>/quickshell.git ~/.config/quickshell
+```
+
+If you already have files there, ensure the entry point is at `~/.config/quickshell/default/shell.qml`.
+
+### 3. Adjust System Specific Settings
+
+Before launching, check and adjust the following files to match your hardware and preferences:
+
+1. **Distro Icon in TopBar (`default/bar/Bar.qml`):**
+   - The topbar button looks for `/usr/share/icons/cachyos.svg` by default.
+   - If using Arch, Fedora, or another distribution, change the path to your distro logo SVG or use a Nerd Font character.
+
+2. **Corner Rounding and Dimensions (`default/theme/Theme.qml`):**
+   - Adjust `rounding: 5` to match your Hyprland `decoration.rounding` setting.
+   - Adjust `barHeight: 34` and `borderThickness: 12` if you want different topbar or screen margin sizes.
+
+3. **Audio Soft-Mixer (WirePlumber):**
+   - If your monitor (e.g. DisplayPort / HDMI) does not support hardware mute, create `~/.config/wireplumber/wireplumber.conf.d/50-alsa-soft-mixer.conf`:
+     ```spa-json
+     monitor.alsa.rules = [
+       {
+         matches = [ { node.name = "~alsa_output.*" } ]
+         actions = { update-props = { api.alsa.soft-mixer = true } }
+       }
+     ]
+     ```
+
+4. **Qt 6 Icon Theme (`~/.config/qt6ct/qt6ct.conf`):**
+   - Set `icon_theme=rose-pine-moon-icons` (or your preferred theme) to ensure tray and app icons render properly.
+
+---
+
+## Calendar Configuration and Secrets Setup
+
+The calendar dropdown reads iCal (`.ics`) feeds from Google Calendar, Nextcloud, or any standard iCalendar URL. To prevent private URLs and access tokens from being committed to Git, configuration and secrets are decoupled.
+
+### 1. Create Calendar Config
+
+Copy the example configuration:
+
+```bash
+cp ~/.config/quickshell/default/calendar/calendars.example.json ~/.config/quickshell/default/calendar/calendars.json
+```
+
+`default/calendar/calendars.json` is ignored by Git. Edit it to list your calendars:
+
+```json
+[
+  {
+    "name": "Holidays",
+    "url": "https://calendar.google.com/calendar/ical/de.german%23holiday%40group.v.calendar.google.com/public/basic.ics",
+    "color": "#c4a7e7",
+    "enabled": true
+  },
+  {
+    "name": "Work",
+    "keyring": "google-calendar-work",
+    "color": "#9ccfd8",
+    "enabled": true
+  },
+  {
+    "name": "Private",
+    "keyring": "google-calendar-private",
+    "color": "#eb6f92",
+    "enabled": true
+  }
+]
+```
+
+- Public feeds: provide direct `url`.
+- Private feeds: omit `url` and set `keyring` to an identifier (e.g. `google-calendar-work`).
+
+### 2. Store Secrets in Keyring / KeePassXC
+
+Choose one of the following methods to store private `.ics` URLs:
+
+#### Option A: KeePassXC (Recommended)
+1. In KeePassXC Settings, enable **Secret Service Integration**.
+2. Create an entry in your database:
+   - **Title:** Match the `keyring` name from `calendars.json` (e.g. `google-calendar-work`).
+   - **Password** or **URL:** Paste your private Google Calendar iCal URL (the secret address ending in `.ics`).
+3. During startup, the calendar fetcher will query the secret once per login session and cache it in volatile memory (`$XDG_RUNTIME_DIR/quickshell/`, tmpfs) with 0600 permissions. No prompts occur on subsequent refreshes.
+
+#### Option B: Terminal via `secret-tool`
+Store the secret directly into your FreeDesktop Secret Service keyring:
+
+```bash
+secret-tool store --label="Google Calendar Work" Title google-calendar-work
+# Enter your private .ics URL when prompted
+```
+
+Test the lookup:
+
+```bash
+secret-tool lookup Title google-calendar-work
+```
+
+#### Option C: Local Overrides File
+Create `~/.config/quickshell/default/calendar/calendars.local.json` (gitignored):
+
+```json
+{
+  "Work": "https://calendar.google.com/calendar/ical/<private-token>/basic.ics",
+  "Private": "https://calendar.google.com/calendar/ical/<private-token>/basic.ics"
+}
+```
+
+---
+
+## Directory Structure
 
 ```text
 ~/.config/quickshell/
 ├── default/
-│   ├── shell.qml                # Einstiegspunkt (ShellRoot, lädt alle Komponenten)
-│   ├── Border.qml               # 12px Bildschirmränder & 4 konkave Innenecken
+│   ├── shell.qml                # Entry point (ShellRoot, loads all modules)
+│   ├── Border.qml               # 12px outer borders and 4 concave screen corners
 │   ├── bar/
-│   │   ├── Bar.qml              # Horizontale 34px TopBar
-│   │   ├── Workspaces.qml       # 10 Workspaces (zentriert)
-│   │   ├── SysInfo.qml          # CPU, RAM & Temperaturanzeige
-│   │   ├── Volume.qml           # Lautstärke-Widget (WirePlumber)
-│   │   ├── Clock.qml            # Uhrzeit & Datum (Klick toggelt Kalender)
-│   │   ├── Tray.qml             # System-Tray (StatusNotifierItem & QsMenu)
-│   │   ├── NotificationButton.qml # Glocken-Button mit Unread-Badge & DND
-│   │   └── Separator.qml        # Trennelemente
+│   │   ├── Bar.qml              # 34px TopBar
+│   │   ├── Workspaces.qml       # 10 Workspaces with active underlines
+│   │   ├── SysInfo.qml          # CPU, RAM, and temperature monitor
+│   │   ├── Volume.qml           # PipeWire volume indicator
+│   │   ├── Clock.qml            # Clock and date (click toggles calendar)
+│   │   ├── Tray.qml             # System tray (DBus StatusNotifierItem)
+│   │   ├── NotificationButton.qml # Bell icon with unread badge and DND
+│   │   └── Separator.qml        # Visual divider
+│   ├── tray/
+│   │   ├── TrayMenu.qml         # Custom themed morphing tray menu and submenus
+│   │   ├── TrayMenuState.qml    # Singleton state for tray anchor and visibility
+│   │   └── qmldir               # QML module registry
 │   ├── calendar/
-│   │   ├── CalendarDropdown.qml # Monatskalender & Termin-Agenda Dropdown
-│   │   ├── CalendarState.qml    # Singleton (Datum, Grid, Event-Filterung & Sync)
-│   │   ├── calendars.json       # Konfiguration der iCal/Google-Kalender-Feeds
-│   │   └── qmldir               # QML-Modulregistrierung
+│   │   ├── CalendarDropdown.qml # Month grid and agenda dropdown
+│   │   ├── CalendarState.qml    # Calendar state and sync listener
+│   │   ├── calendars.example.json # Anonymous template configuration
+│   │   ├── calendars.json       # Local user calendar config (gitignored)
+│   │   └── qmldir               # QML module registry
 │   ├── notifications/
-│   │   ├── NotificationState.qml # Singleton (NotificationServer-Daemon & State)
-│   │   ├── NotificationPanel.qml # Slide-in Kontrollzentrum (MPRIS + Notif-Historie)
-│   │   ├── NotificationPopup.qml # Toast-Popups oben rechts
-│   │   ├── NotificationCard.qml  # Benachrichtigungskarte mit Aktionen
-│   │   ├── MprisPlayerWidget.qml # MPRIS-Player mit Cover-Art & Timeline
-│   │   └── qmldir               # QML-Modulregistrierung
+│   │   ├── NotificationState.qml # DBus notification server daemon and state
+│   │   ├── NotificationPanel.qml # Slide-in control center (MPRIS, toggles, history)
+│   │   ├── NotificationPopup.qml # Toast popups (top right)
+│   │   ├── NotificationCard.qml  # Notification card with actions
+│   │   ├── MprisPlayerWidget.qml # MPRIS player with cover art and timeline seekbar
+│   │   ├── AudioControlWidget.qml # PipeWire sink switcher and mic controls
+│   │   ├── BluetoothWidget.qml  # Bluetooth quick toggle and device manager
+│   │   └── qmldir               # QML module registry
 │   ├── power_menu/
-│   │   ├── PowerMenu.qml        # Energie-Menü (oben links, slide-in)
-│   │   ├── PowerMenuState.qml   # Singleton-Statusverwaltung
-│   │   └── qmldir               # QML-Modulregistrierung
+│   │   ├── PowerMenu.qml        # Power menu (top left, slide-in)
+│   │   ├── PowerMenuState.qml   # Power menu singleton
+│   │   └── qmldir               # QML module registry
 │   ├── app_launcher/
-│   │   ├── AppLauncher.qml      # App-Launcher (unten zentriert, slide-up)
-│   │   ├── AppLauncherState.qml # Singleton-Statusverwaltung
-│   │   └── qmldir               # QML-Modulregistrierung
+│   │   ├── AppLauncher.qml      # App launcher (bottom centered, slide-up)
+│   │   ├── AppLauncherState.qml # App launcher singleton
+│   │   └── qmldir               # QML module registry
 │   ├── osd/
-│   │   ├── OsdState.qml         # Singleton-Status & PipeWire-Listener
-│   │   ├── VolumeOsd.qml        # Zentriertes Floating-Pill Overlay (Lautstärke & Mute)
-│   │   └── qmldir               # QML-Modulregistrierung
+│   │   ├── OsdState.qml         # PipeWire volume and mute listener
+│   │   ├── VolumeOsd.qml        # Centered floating pill OSD
+│   │   └── qmldir               # QML module registry
 │   ├── components/
-│   │   └── ConcaveCurves.qml    # Universelle konkave Kurven-Komponente (ShapePath)
+│   │   └── ConcaveCurves.qml    # ShapePath concave corner transition component
 │   ├── theme/
-│   │   ├── Colors.qml           # Rosé Pine Moon Farbpalette
-│   │   ├── Theme.qml            # Globale Metriken (rounding = 5, Border-Dicken)
-│   │   └── qmldir               # Singleton-Registrierung (Colors, Theme)
+│   │   ├── Colors.qml           # Rosé Pine Moon palette
+│   │   ├── Theme.qml            # Dimensions, roundings, and borders
+│   │   └── qmldir               # Theme singleton registry
 │   └── scripts/
-│       ├── cycle_audio.py       # Skript zum Durchwechseln des Audio-Ausgabegeräts
-│       └── fetch_calendar.py    # iCal/Google Calendar Parser & Caching-Daemon
-└── README.md                    # Diese Dokumentation
+│       ├── cycle_audio.py       # Middle-click audio sink cycle script
+│       └── fetch_calendar.py    # iCal/Google calendar parser and cache daemon
+├── README.md                    # English documentation
+└── README.de.md                 # German documentation
 ```
 
 ---
 
-## 🖥️ Komponenten im Detail
+## Components
 
 ### 1. TopBar (`default/bar/Bar.qml`)
-- **Höhe:** 34px (`exclusiveZone: 34`, reserviert Platz in Hyprland).
-- **Links:** CachyOS-Symbol (`/usr/share/icons/cachyos.svg` oder NerdFont-Fallback).
-  - Linksklick öffnet/schließt das Power-Menü (`PowerMenuState.toggle()`).
-  - Wird visuell hervorgehoben, solange das Menü offen ist.
-  - **System Tray (`Tray.qml`):** StatusNotifierItem (SNI) für Hintergrund-Apps (Telegram, KeePassXC etc.) mit nativen Rechtsklick-Menüs (`QsMenuAnchor`).
-- **Mitte:** 10 Workspaces mit aktiver Unterstreichung und Fenstermarkierung.
-- **Rechts:**
-  - **SysInfo:** CPU-Last (via `/proc/stat`), RAM-Verbrauch (via `/proc/meminfo`), CPU-Temperatur (via `sensors`).
-  - **Volume:** Lautstärkeanzeige mit Audio-Gerätename.
-  - **Clock:** Uhrzeit mit Wochentag.
-  - **Notification-Button (`NotificationButton.qml`):** Glocken-Icon mit Unread-Badge-Punkt. Linksklick toggelt Kontrollzentrum, Rechtsklick schaltet DND (Do Not Disturb) um.
-- **Klick-Verhalten:** Klicks auf freie Flächen der TopBar schließen geöffnete Menüs.
+- **Height:** 34px (`exclusiveZone: 34`, reserves space in Hyprland).
+- **Left:** Distribution logo (click toggles power menu) and System Tray.
+- **Center:** 10 Workspaces with active window indicators and active workspace underline.
+- **Right:** SysInfo (CPU, RAM, Sensors), Volume, Clock, and Notification Bell.
+- **Click Behavior:** Clicking empty bar space closes open panels.
+
+### 2. System Tray (`default/bar/Tray.qml` & `default/tray/`)
+- Implements StatusNotifierItem (SNI) via DBus.
+- Replaces native Qt popup menus with a custom styled QML menu adhering to Rosé Pine Moon colors.
+- Seamless morphing from the topbar with concave curves anchored to the clicked tray icon.
+- Full input click-through on the topbar: clicking another tray icon while a menu is open switches directly to the new icon; clicking the same icon toggles it closed.
+- Supports nested submenus, checkable items, separators, and dynamic width calculation.
+
+### 3. Audio & Volume (`default/bar/Volume.qml`)
+- **Left click:** Opens control center audio section.
+- **Right click:** Toggles mute.
+- **Middle click:** Cycles to the next audio output device via `default/scripts/cycle_audio.py`.
+- **Scroll wheel:** Changes volume in 2% steps.
+
+### 4. Control Center & Notifications (`default/notifications/`)
+- **Notification Daemon:** Built-in `org.freedesktop.Notifications` implementation. Replaces `swaync` or `dunst`.
+- **Toast Popups:** Top right toasts with app icons, summaries, body text, and interactive action buttons. Pauses on hover.
+- **Control Center Panel:** Slides in from the right edge with concave morphing corners.
+- **Quick Toggles:**
+  - Do Not Disturb (DND) toggle.
+  - Native Bluetooth manager with scan, power, and device connect buttons.
+  - Microphone mute toggle and volume slider.
+- **Audio Output Switcher:** Select any PipeWire audio sink with a single click.
+- **MPRIS Media Player:** Album artwork, song details, clickable seekbar (`mm:ss`), and full playback controls.
+
+### 5. Calendar Dropdown (`default/calendar/`)
+- Anchored to the topbar clock.
+- 42-day month grid with ISO 8601 calendar weeks (CW 1-53) and Mo-Su columns.
+- Highlights today and selected dates; displays colored dots on days with upcoming events.
+- Filterable agenda list showing start time, event title, and colored calendar badge.
+- Decoupled secrets management via KeePassXC or `secret-tool`.
+
+### 6. Volume OSD (`default/osd/VolumeOsd.qml`)
+- Floating pill overlay centered at the bottom of the screen.
+- Listens to PipeWire volume changes directly (`wpctl`, keyboard keys, mouse wheel).
+- Displays volume percentage, animated level bar, and dynamic audio icon.
+- Smooth fade-out after 1.5 seconds of inactivity. Input-transparent (`Region { item: null }`).
+
+### 7. Power Menu (`default/power_menu/PowerMenu.qml`)
+- Slides in from top-left, seamlessly connecting to the topbar and screen edge via concave curves.
+- Options: Suspend (`systemctl suspend`), Log out, Reboot, Power off (`hyprshutdown`).
+- Keyboard navigable with Escape to close.
+
+### 8. App Launcher (`default/app_launcher/AppLauncher.qml`)
+- Slides up centered above the bottom margin.
+- Search filter for desktop applications with icons and category tags.
+
+### 9. Screen Borders & Concave Corners (`default/Border.qml`)
+- 12px margins around bottom, left, and right screen edges.
+- 4 concave corner transitions connecting the shell frame smoothly into Hyprland client windows.
 
 ---
 
-### 2. Audio & Lautstärke (`default/bar/Volume.qml`)
-| Aktion | Verhalten |
-|---|---|
-| **Linksklick** | Öffnet `pwvucontrol` (PipeWire Volume Control GUI) |
-| **Rechtsklick** | Schaltet Stummschaltung um (`mute toggle`) |
-| **Mittelklick** | Wechselt zum nächsten Audio-Ausgabegerät via [`default/scripts/cycle_audio.py`](scripts/cycle_audio.py) |
-| **Mausrad** | Lautstärke in 2%-Schritten anpassen |
+## Hyprland Integration (`~/.config/hypr/hyprland.conf` or `hyprland.lua`)
 
-> [!NOTE]
-> **WirePlumber Soft-Mixer Fix:**
-> Manche Monitore (z. B. LG UltraGear über DisplayPort) unterstützen keinen Hardware-Mute.
-> Die Lösung liegt in `~/.config/wireplumber/wireplumber.conf.d/50-alsa-soft-mixer.conf`:
-> ```spa-json
-> monitor.alsa.rules = [
->   {
->     matches = [ { node.name = "~alsa_output.*" } ]
->     actions = { update-props = { api.alsa.soft-mixer = true } }
->   }
-> ]
-> ```
-
----
-
-### 3. Power-Menü (`default/power_menu/PowerMenu.qml`)
-- **Position:** Oben links, schließt nahtlos (`topMargin: 0`) an die TopBar an.
-- **Ecken-Design:**
-  - **Oben rechts:** Konkave Kurve (`Theme.cornerRadius`) leitet weich in die TopBar über.
-  - **Unten links:** Konkave Kurve (`Theme.cornerRadius`) leitet weich in den 12px linken Bildschirmrand über.
-  - **Unten rechts:** Konvex abgerundet (`Theme.cornerRadius`).
-  - **Oben links:** Bündig anliegend (Radius 0).
-- **Tastaturfokus:** `WlrKeyboardFocus.OnDemand` (kein exklusiver Modal-Grab, Klicks auf TopBar und Desktop bleiben möglich).
-- **Aktionen:** Bereitschaft (`systemctl suspend`), Abmelden, Neustart, Herunterfahren (über `hyprshutdown`).
-- **Shortcuts & IPC:**
-  - Hyprland-Keybind: `SUPER + Escape`
-  - IPC: `qs ipc call powermenu toggle`
-
----
-
-### 4. App-Launcher (`default/app_launcher/AppLauncher.qml`)
-- **Position:** Unten zentriert, slidet über der 12px Bodenleiste nach oben.
-- **Features:** Desktop-Entries-Suche mit App-Icons, Verlauf der zuletzt geöffneten Apps, Tastaturnavigation.
-- **Shortcuts & IPC:**
-  - Hyprland-Keybind: `SUPER + R`
-  - IPC: `qs ipc call applauncher toggle`
-
----
-
-### 5. Kontrollzentrum & Benachrichtigungen (`default/notifications/`)
-- **Notification-Server (`NotificationState.qml`):** Nativer DBus-Daemon für `org.freedesktop.Notifications` (vollständiger Ersatz für `swaync`).
-- **Toast-Popups (`NotificationPopup.qml` & [`NotificationCard.qml`](default/notifications/NotificationCard.qml)):** Auto-dismissing Toasts oben rechts mit App-Icon, Titel, Body und interaktiven Action-Buttons. Pausiert bei Maus-Hover.
-- **Slide-in Kontrollzentrum (`NotificationPanel.qml`):**
-  - Fährt weich von der rechten Bildschirmkante ein.
-  - **Organisches Morphing:** Konkave Kurven (`Theme.cornerRadius`) leiten oben nahtlos in die TopBar und unten in den Bodenrand über.
-  - **DND (Do Not Disturb):** Unterdrückt Toast-Popups temporär.
-  - **Historie & Löschen:** Übersicht aller eingegangenen Benachrichtigungen inklusive Verwerfen- und „Alles Löschen“-Button.
-- **MPRIS-Mediensteuerung ([`MprisPlayerWidget.qml`](default/notifications/MprisPlayerWidget.qml)):**
-  - Vollwertige Mediensteuerung für Spotify, Firefox, MPV & Co.
-  - Album-Artwork, Track-Titel, Künstler, klickbare Timeline-Seekbar (`mm:ss`) und Playback-Buttons (Play/Pause, Prev, Next, Shuffle, Loop).
-- **Shortcuts & IPC:**
-  - Hyprland-Keybind: `SUPER + I`
-  - IPC: `qs ipc call notifications toggle`
-
-### 6. Lautstärke- & Mute-OSD (`default/osd/VolumeOsd.qml`)
-- **Overlay:** Zentriertes, elegantes Floating-Pill am unteren Bildschirmrand (`WlrLayer.Overlay`).
-- **Reaktiv:** Reagiert automatisch via `Quickshell.Services.Pipewire` auf jegliche Lautstärke- & Stummschalt-Änderungen (`wpctl`, Tastatur-Hotkeys, Mausrad an der Bar).
-- **100% Klickdurchlässig:** `mask: Region { item: null }` und `exclusionMode: ExclusionMode.Ignore` verhindern jede Blockierung von Fenstern oder Klicks.
-- **Visuals:** Dynamisches Nerd-Font-Icon (Mute, Low, Med, High), animierter Pegelbalken (Foam-Blau oder Love-Rot bei Mute) und Prozentanzeige in JetBrainsMono Nerd Font.
-- **Sanftes Ausblenden:** Fadet nach 1,5s Inaktivität mit sanfter Opazitäts- und Skalierungsanimation aus.
-- **IPC:** `qs ipc call osd show` / `qs ipc call osd hide`
-
----
-
-### 7. Kalender & Termin-Agenda (`default/calendar/`)
-- **Dropdown-Panel ([`CalendarDropdown.qml`](default/calendar/CalendarDropdown.qml)):**
-  - Schwebt elegant 6px unterhalb der TopBar auf der rechten Bildschirmseite (`WlrLayer.Overlay`).
-  - Schließt sanft per Klick außerhalb, Escape-Taste oder erneutem Klick auf die Uhr.
-- **Interaktive Monatsansicht:**
-  - 42-Tage-Raster mit ISO 8601 Kalenderwochen (KW 1–53) und Mo–So Spalten.
-  - Heutiger Tag wird mit Rosé-Pine-Farbakzent hervorgehoben; beliebiger Tag lässt sich anklicken.
-  - Schnelle Monatsnavigation (Vor, Zurück) und „Heute“-Pill-Button.
-- **Termine & Feiertage (Google Calendar / iCal Feed):**
-  - Tage mit anstehenden Terminen tragen farbige Indikator-Punkte.
-  - Klick auf einen Tag filtert die Termin-Agenda darunter: zeigt Startzeit, Titel, Kalenderquelle und Farbakzent.
-  - **KeePassXC Keyring-Integration (100% sicher für Git):** Private iCal-URLs müssen **nicht** im Klartext in Git-Dateien stehen! Der Daemon fragt sie automatisch über den FreeDesktop Secret Service (`secret-tool`) aus KeePassXC ab (`"keyring": "google-calendar-..."`).
-  - **Hintergrund-Daemon ([`fetch_calendar.py`](default/scripts/fetch_calendar.py)):** Parse `.ics`-Feeds direkt via Python ohne Abhängigkeit von Thunderbird, cacht Termine lokal in `~/.cache/quickshell/calendar/`.
-  - **Konfiguration ([`calendars.json`](default/calendar/calendars.json)):** Name, Farbe und Keyring-Schlüssel. Unterstützt alternativ auch git-ignorierte lokale Overrides (`calendars.local.json`).
-  - **Thunderbird-Shortcut:** Schneller 1-Klick-Start von Thunderbird über den Header-Button.
-- **Shortcuts & IPC:**
-  - Klick auf Uhrzeit in der TopBar ([`default/bar/Clock.qml`](default/bar/Clock.qml))
-  - IPC: `qs ipc call calendar toggle` / `open` / `close` / `next` / `prev` / `today`
-
----
-
-### 8. Bildschirmränder & Konkave Innenecken (`default/Border.qml`)
-- **Ränder:** 12px dicke Balken unten, links und rechts (`WlrLayer.Top`). Oben fungiert die TopBar als Begrenzung.
-- **Innenecken:** Ein vollkommen klickdurchlässiges Overlay (`quickshell-corners`) spannt die 4 konkaven Übergänge auf:
-  - Oben links, oben rechts, unten links, unten rechts.
-  - Verbindet die Leisten fließend mit dem Hyprland-Fensterbereich.
-
----
-
-### 9. Design & Metriken (`default/theme/`)
-
-#### [`Theme.qml`](default/theme/Theme.qml)
-Zentraler Singleton für konsistente Maße, synchronisiert mit Hyprland:
-```qml
-pragma Singleton
-import QtQuick
-
-QtObject {
-    readonly property int rounding: 5        // Entspricht Hyprland decoration.rounding
-    readonly property int cornerRadius: rounding
-    readonly property int borderThickness: 12
-    readonly property int barHeight: 34
-    readonly property int borderWidth: 1
-    readonly property color borderColor: "#393552"
-}
-```
-
-#### [`Colors.qml`](default/theme/Colors.qml)
-Rosé Pine Moon Farbpalette:
-- Hintergrund (`colBg`): `#232136`
-- Vordergrund (`colFg`): `#e0def4`
-- Overlay (`colBlack`): `#393552`
-- Akzente: Rose (`colCyan` / `colRose`), Gold (`colYellow` / `colGold`), Pine (`colGreen` / `colPine`), Foam (`colBlue` / `colFoam`), Iris (`colPurple` / `colIris`), Love (`colRed` / `colLove`).
-
----
-
-## 🔧 Hyprland-Integration (`~/.config/hypr/hyprland.lua`)
-
-In Hyprland (ab 0.55 Lua-Syntax) ist Quickshell wie folgt eingebunden:
+Example Lua integration:
 
 ```lua
 -- Autostart
 hl.on("hyprland.start", function()
-    hl.exec_cmd("hyprpaper & firefox & quickshell & keepassxc")
+    hl.exec_cmd("quickshell -d & keepassxc & hyprpaper")
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
 end)
 
--- Quickshell Module
+-- IPC Keybindings
 local menu = "qs ipc call applauncher toggle"
 local powerMenu = "qs ipc call powermenu toggle"
 local notificationPanel = "qs ipc call notifications toggle"
+local calendar = "qs ipc call calendar toggle"
 
 hl.bind(mainMod .. " + " .. "R", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + " .. "Escape", hl.dsp.exec_cmd(powerMenu))
 hl.bind(mainMod .. " + " .. "I", hl.dsp.exec_cmd(notificationPanel))
+hl.bind(mainMod .. " + " .. "C", hl.dsp.exec_cmd(calendar))
 
--- Rundung (wird von Quickshell Theme übernommen)
+-- Match rounding
 hl.config({
     decoration = {
         rounding = 5,
@@ -235,112 +290,34 @@ hl.config({
 
 ---
 
-## 🎨 Wichtig: Qt 6 Icon-Theme Konfiguration
-
-Da Quickshell eine **Qt 6**-Anwendung ist, verwendet es `QIcon::fromTheme(...)` zum Laden von App-Icons.
-Wenn unter Hyprland `QT_QPA_PLATFORMTHEME=qt5ct:qt6ct` gesetzt ist, benötigt Qt die Information über das Icon-Theme:
-
-1. **`~/.config/qt6ct/qt6ct.conf`** & **`~/.config/qt5ct/qt5ct.conf`**:
-   ```ini
-   [Appearance]
-   icon_theme=rose-pine-moon-icons
-   ```
-
-2. **`~/.config/kdeglobals`**:
-   ```ini
-   [Icons]
-   Theme=rose-pine-moon-icons
-   ```
-
-3. **Lokale Icon-Fallbacks**:
-   Apps ohne mitgeliefertes Icon (z. B. `lstopo` / `hwloc`) können unter `~/.local/share/icons/hicolor/scalable/apps/<icon-name>.svg` hinterlegt werden.
-
----
-
-## 🚀 Nützliche Befehle
+## Useful Commands
 
 ```bash
-# Quickshell im Hintergrund starten
-qs -d
+# Start quickshell as background daemon
+quickshell -d
 
-# Quickshell-Instanzen anzeigen
-qs list
+# Show running instances
+quickshell list
 
-# IPC: Power-Menü umschalten
+# View live logs
+quickshell log -f
+
+# IPC calls
 qs ipc call powermenu toggle
-
-# IPC: App-Launcher umschalten
 qs ipc call applauncher toggle
-
-# IPC: Kalender & Termin-Agenda umschalten / steuern
-qs ipc call calendar toggle
-qs ipc call calendar today
-qs ipc call calendar next
-qs ipc call calendar prev
-
-# IPC: Kontrollzentrum / Benachrichtigungen umschalten
 qs ipc call notifications toggle
-
-# IPC: DND umschalten oder Benachrichtigungen leeren
 qs ipc call notifications toggleDnd
 qs ipc call notifications dismissAll
+qs ipc call calendar toggle
+qs ipc call calendar today
+qs ipc call osd show
 
-# Live-Logs ansehen
-tail -f /run/user/1000/quickshell/by-id/*/log.log
+# Clear in-RAM calendar secrets cache
+python3 ~/.config/quickshell/default/scripts/fetch_calendar.py --clear-session-secrets
 ```
 
 ---
 
-## 📋 Roadmap & TODO
+## License
 
-Geordnet nach Auswirkungs- und Umsetzungspriorität:
-
-### 🥇 Priorität 1: Direktes Desktop-Feintuning (High Impact / Quick Wins)
-Kernelemente für ein geschliffenes Alltags-Desktop-Gefühl, die visuelles Feedback geben und bestehende Workflows vereinfachen:
-
-- [x] **Visuelles OSD (On-Screen Display für Lautstärke & Mute)**
-  - Zentriertes, elegantes Floating-Pill-Overlay (Desktop-PC ohne Display-Helligkeit).
-  - Reagiert sofort auf Tasten wie `XF86AudioRaiseVolume`, `XF86AudioLowerVolume`, `XF86AudioMute` und Mausrad-Pegeländerungen.
-  - Zeigt Pegel-Balken, Prozentwert und dynamisches Audio-Icon an; fadet nach 1,5s weich aus.
-  - *Ersetzt:* `swayosd`, `avizo`, `wob`.
-- [x] **Interaktiver Monatskalender & Termin-Agenda bei Klick auf die Uhr**
-  - Klick auf die Uhrzeit in der TopBar ([`default/bar/Clock.qml`](default/bar/Clock.qml)) öffnet das elegante Rosé-Pine-Moon Kalender-Dropdown ([`default/calendar/CalendarDropdown.qml`](default/calendar/CalendarDropdown.qml)).
-  - Monatsraster (42 Tage), ISO-Kalenderwochen (KW), hervorgehobener heutiger & ausgewählter Tag, Vor-/Zurück-Navigation und „Heute“-Button.
-  - **Kalender-Integration (Google Calendar / iCal / Thunderbird):** Direkte Feeds über [`default/calendar/calendars.json`](default/calendar/calendars.json) mit Hintergrund-Synchronisation via Python-Daemon ([`default/scripts/fetch_calendar.py`](default/scripts/fetch_calendar.py)).
-  - Farbige Termin-Indikatoren auf Monatstagen; Agenda zeigt Startzeit, Titel und Kalender-Badge; Thunderbird-Schnellstarttaste.
-- [x] **Nativer Audio-Sink-Umschalter & Volume-Slider**
-  - Schnelle Lautstärkeregelung per Schieberegler (Drag & Scroll) und 1-Klick-Umschaltung des Audio-Ausgabegeräts (z. B. HyperX Cloud III ↔ LG ULTRAGEAR Monitor).
-  - Nativ über `Quickshell.Services.Pipewire` direkt im Kontrollzentrum ([`default/notifications/AudioControlWidget.qml`](default/notifications/AudioControlWidget.qml)).
-  - Klick auf das Lautstärke-Icon in der TopBar ([`default/bar/Volume.qml`](default/bar/Volume.qml)) öffnet direkt das Kontrollzentrum; Mittelklick wechselt das Audiogerät nahtlos durch.
-  - *Ersetzt:* Das externe GTK-Tool `pwvucontrol` für alltägliche Pegelanpassungen.
-
----
-
-### 🥈 Priorität 2: Ausbau des Kontrollzentrums (Quick Toggles)
-Zusätzliche Schnellzugriffe im oberen Bereich des ausfahrbaren Kontrollzentrums ([`default/notifications/NotificationPanel.qml`](default/notifications/NotificationPanel.qml)):
-
-- [x] **Bluetooth Quick-Toggle & Gerätemanager**
-  - Adapter an/aus per Schnelltaste und 1-Klick-Verbindungsaufbau zu gepaarten Geräten (z. B. Xbox Wireless Controller, Headsets).
-  - Vollständig nativ über `Quickshell.Bluetooth` ([`default/notifications/BluetoothWidget.qml`](default/notifications/BluetoothWidget.qml)).
-  - *Ersetzt:* `blueman-applet` / `blueman-manager`.
-- [ ] **Night Light / Blaulichtfilter-Toggle**
-  - Schneller Umschalter für wärmere Bildschirm-Farbtemperaturen in den Abendstunden.
-  - Anbindung an `hyprsunset` oder `wlsunset`.
-- [x] **Mikrofon-Stummschaltung & Pegelregler (Mic Mute)**
-  - Schnelle optische Statusanzeige, 1-Klick-Stummschaltung und Eingangspegel-Schieberegler via PipeWire direkt im Kontrollzentrum und als Quick-Toggle.
-- [ ] **Netzwerk / WLAN-Statusanzeige**
-  - Schnelle Anzeige des aktuellen WLAN-Namens (SSID) bzw. Verbindungsstatus im Header des Panels.
-
----
-
-### 🥉 Priorität 3: Größere System-Bausteine
-Umfassendere Systemkomponenten zur Vereinheitlichung des Gesamtsystems:
-
-- [ ] **Clipboard-Manager (Zwischenablage-Historie)**
-  - Durchsuchbarer Verlauf kürzlich kopierter Texte und Bilder.
-  - Integration entweder als separater Sub-Modus im App-Launcher (`SUPER + V`) oder als eigener Tab/Reiter.
-  - Anbindung an `cliphist` / `wl-clipboard`.
-- [ ] **Nativer Quickshell-Lockscreen**
-  - Vollwertiger Sperrbildschirm im exakt selben Rosé-Pine-Design mit konkaven Elementen und Animationen.
-  - Nativ realisierbar über `Quickshell.Wayland.WlSessionLock` und `Quickshell.Services.Pam`.
-  - *Ersetzt:* `hyprlock` oder `swaylock`.
+MIT License.
