@@ -82,6 +82,15 @@ PanelWindow {
                     onClicked: PowerMenuState.toggle()
                 }
             }
+
+            Separator {
+                visible: tray.hasItems
+            }
+
+            Tray {
+                id: tray
+                barWindow: barWindow
+            }
         }
 
         // Center Section: Workspaces
