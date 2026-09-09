@@ -22,4 +22,17 @@ QtObject {
     readonly property color colBrightPurple: "#c4a7e7" // Iris
     readonly property color colBrightCyan: "#ea9a97" // Rose
     readonly property color colBrightWhite: "#e0def4" // Text
+
+    // Semantic Rose Pine names
+    readonly property color colSurface: "#1f1d2e"
+    readonly property color colOverlay: "#26233a"
+    readonly property color colMuted: "#6e6a86"
+    readonly property color colSubtle: "#908caa"
+    readonly property color colRose: "#ea9a97"
+    readonly property color colLove: "#eb6f92"
+    readonly property color colGold: "#f6c177"
+    readonly property color colFoam: "#9ccfd8"
+    readonly property color colIris: "#c4a7e7"
+    readonly property color colPine: "#3e8fb0"
+    readonly property color colHighlight: "#393552"
 }

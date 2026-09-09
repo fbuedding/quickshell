@@ -117,6 +117,10 @@ PanelWindow {
             Separator {}
 
             Clock {}
+
+            Separator {}
+
+            NotificationButton {}
         }
     }
 }
