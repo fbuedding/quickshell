@@ -29,7 +29,7 @@ PanelWindow {
     color: "transparent"
 
     mask: Region {
-        item: NotificationState.activePopups.length > 0 ? popupsCol : null
+        item: (NotificationState.activePopups && NotificationState.activePopups.length > 0) ? popupsCol : null
     }
 
     ColumnLayout {
@@ -48,6 +48,7 @@ PanelWindow {
                 id: popupItem
                 Layout.fillWidth: true
                 implicitHeight: card.implicitHeight
+                visible: Boolean(modelData)
 
                 // Slide & Fade in animation
                 opacity: 1
@@ -63,9 +64,22 @@ PanelWindow {
 
                 // Auto-dismiss timer (pauses when hovered)
                 Timer {
-                    interval: (modelData.expireTimeout > 0 ? modelData.expireTimeout * 1000 : 6000)
-                    running: !hoverWatcher.containsMouse
-                    onTriggered: NotificationState.removePopup(modelData)
+                    interval: {
+                        if (!modelData) return 5000;
+                        let t = modelData.expireTimeout;
+                        if (typeof t === "number" && t > 0) {
+                            return t > 100 ? t : Math.round(t * 1000);
+                        }
+                        return 6000;
+                    }
+                    running: !hoverWatcher.containsMouse && Boolean(modelData)
+                    onTriggered: {
+                        if (modelData) {
+                            NotificationState.removePopup(modelData);
+                        } else {
+                            NotificationState.clearStalePopups();
+                        }
+                    }
                 }
 
                 HoverHandler {

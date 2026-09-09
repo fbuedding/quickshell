@@ -13,6 +13,7 @@ Rectangle {
     border.width: Theme.borderWidth
     border.color: Theme.borderColor
     clip: true
+    visible: Boolean(notification)
 
     required property var notification
 
@@ -41,12 +42,13 @@ Rectangle {
                 IconImage {
                     anchors.fill: parent
                     source: {
+                        if (!root.notification) return "";
                         let icon = root.notification.appIcon || "";
                         if (!icon) return "";
                         if (icon.startsWith("/") || icon.startsWith("file://") || icon.startsWith("image://")) return icon;
                         return Quickshell.iconPath(icon) || ("image://icon/" + icon);
                     }
-                    visible: status === Image.Ready
+                    visible: status === Image.Ready && Boolean(root.notification && root.notification.appIcon)
                 }
 
                 Text {
@@ -55,13 +57,13 @@ Rectangle {
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 12
                     color: Colors.colMuted
-                    visible: !root.notification.appIcon
+                    visible: !root.notification || !root.notification.appIcon
                 }
             }
 
             // App Name
             Text {
-                text: root.notification.appName || root.notification.desktopEntry || "System"
+                text: root.notification ? (root.notification.appName || root.notification.desktopEntry || "System") : "System"
                 font.family: "JetBrainsMono Nerd Font"
                 font.pixelSize: 11
                 font.bold: true
@@ -90,7 +92,13 @@ Rectangle {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: NotificationState.dismiss(root.notification)
+                    onClicked: {
+                        if (root.notification) {
+                            NotificationState.dismiss(root.notification);
+                        } else {
+                            NotificationState.clearStalePopups();
+                        }
+                    }
                 }
             }
         }
@@ -108,11 +116,11 @@ Rectangle {
                 radius: 4
                 color: Colors.colBlack
                 clip: true
-                visible: !!root.notification.image
+                visible: Boolean(root.notification && root.notification.image)
 
                 Image {
                     anchors.fill: parent
-                    source: root.notification.image || ""
+                    source: (root.notification && root.notification.image) ? root.notification.image : ""
                     fillMode: Image.PreserveAspectCrop
                 }
             }
@@ -124,7 +132,7 @@ Rectangle {
 
                 Text {
                     Layout.fillWidth: true
-                    text: root.notification.summary || ""
+                    text: (root.notification && root.notification.summary) ? root.notification.summary : ""
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 12
                     font.bold: true
@@ -137,7 +145,7 @@ Rectangle {
 
                 Text {
                     Layout.fillWidth: true
-                    text: root.notification.body || ""
+                    text: (root.notification && root.notification.body) ? root.notification.body : ""
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 11
                     color: Colors.colSubtle
@@ -156,7 +164,7 @@ Rectangle {
             visible: Boolean(root.notification && root.notification.actions && root.notification.actions.length > 0)
 
             Repeater {
-                model: root.notification.actions
+                model: (root.notification && root.notification.actions) ? root.notification.actions : []
 
                 delegate: Rectangle {
                     implicitHeight: 24

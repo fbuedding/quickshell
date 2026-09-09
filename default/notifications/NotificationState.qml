@@ -22,33 +22,76 @@ Singleton {
     function toggleDnd()   { dnd = !dnd; }
 
     function dismiss(notification) {
-        if (!notification || typeof notification.dismiss !== "function") return;
+        if (!notification) {
+            clearStalePopups();
+            return;
+        }
         removePopup(notification);
-        notification.dismiss();
+        try {
+            if (typeof notification.dismiss === "function") {
+                notification.dismiss();
+            }
+        } catch (e) {
+            console.warn("Error dismissing notification:", e);
+        }
     }
 
     function dismissAll() {
         let list = notifServer.trackedNotifications.values.slice();
         for (let i = 0; i < list.length; i++) {
-            list[i].dismiss();
+            try {
+                if (list[i] && typeof list[i].dismiss === "function") {
+                    list[i].dismiss();
+                }
+            } catch (e) {}
         }
         activePopups = [];
     }
 
     function addPopup(notif) {
+        if (!notif || notif.id === undefined) return;
+        let list = [];
         for (let i = 0; i < activePopups.length; i++) {
-            if (activePopups[i].id === notif.id) return;
+            let item = activePopups[i];
+            if (item && item.id !== undefined) {
+                if (item.id === notif.id) return;
+                list.push(item);
+            }
         }
-        let list = activePopups.slice();
         list.push(notif);
+        activePopups = list;
+
+        // Auto-remove popup when the notification is closed by client or dismissed
+        try {
+            if (notif.closed && typeof notif.closed.connect === "function") {
+                notif.closed.connect(() => {
+                    removePopup(notif.id);
+                });
+            }
+        } catch (e) {}
+    }
+
+    function removePopup(notifOrId) {
+        let targetId = (typeof notifOrId === "object" && notifOrId !== null) ? notifOrId.id : notifOrId;
+        let list = [];
+        for (let i = 0; i < activePopups.length; i++) {
+            let item = activePopups[i];
+            if (item && item.id !== undefined) {
+                if (targetId !== undefined && item.id === targetId) {
+                    continue;
+                }
+                list.push(item);
+            }
+        }
         activePopups = list;
     }
 
-    function removePopup(notif) {
+    function clearStalePopups() {
         let list = [];
         for (let i = 0; i < activePopups.length; i++) {
-            if (activePopups[i].id !== notif.id) {
-                list.push(activePopups[i]);
+            let item = activePopups[i];
+            if (item && item.id !== undefined) {
+                list.push(item);
             }
         }
         activePopups = list;
@@ -65,7 +108,7 @@ Singleton {
 
         onNotification: notif => {
             notif.tracked = true;
-            if (!root.dnd) {
+            if (!root.dnd && !notif.lastGeneration) {
                 root.addPopup(notif);
             }
         }
